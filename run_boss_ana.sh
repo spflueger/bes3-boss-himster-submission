@@ -1,9 +1,10 @@
 #!/bin/sh
 
-echo "running the boss.exe here!"
-echo "$application_path"
+echo "using boss: ${application_path}"
+jobopt="${job_option_dir}/${job_option_filename}_${PBS_ARRAYID}${job_option_file_ext}"
+echo "using job options file: $jobopt"
 
-filename="${job_option_dir}/${job_option_filename}_${PBS_ARRAYID}${job_option_file_ext}"
-echo "job option file url $filename"
+echo "running boss..."
+time ${application_path} $jobopt
 
 exit 0
