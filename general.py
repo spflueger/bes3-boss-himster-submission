@@ -1,4 +1,4 @@
-from os import listdir, path
+from os import listdir, path, sys
 from re import search
 from glob import glob
 
@@ -44,9 +44,16 @@ def get_job_option_base_filename(dir_path, filename_pattern,
                 filename_dict[base_filename] = 1
 
     if len(filename_dict) > 1:
+        print("found multiple filename patterns in this directory."
+              "\nPlease use the filename_pattern parameter to "
+              "filter out one set!")
+        print("found file patterns with corresponding file count are:")
         print(filename_dict)
-        raise ValueError("found multiple filename patterns in this directory."
-                         "\nPlease use the filename_pattern parameter to "
-                         "filter out one set!")
+        sys.exit(1)
+
+    elif len(filename_dict) == 0:
+        print("Did not find any files in the directory, that match "
+              "your requested pattern.\nPlease double check your request.")
+        sys.exit(1)
 
     return next(iter(filename_dict))

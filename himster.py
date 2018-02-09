@@ -15,20 +15,17 @@ def get_num_jobs_on_himster():
     return int(out)
 
 
-def is_executable(fpath):
-    return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+def is_executable(exe_name):
+    for path in os.environ["PATH"].split(os.pathsep):
+        path = path.strip('"')
+        exe_url = os.path.join(path, exe_name)
+        if os.path.isfile(exe_url) and os.access(exe_url, os.X_OK):
+            return True
+    return False
 
 
 def is_cluster_environment():
-    program = 'qsub'
-    is_cluster = False
-    for path in os.environ["PATH"].split(os.pathsep):
-        path = path.strip('"')
-        exe_file = os.path.join(path, program)
-        if is_executable(exe_file):
-            is_cluster = True
-            break
-    return is_cluster
+    return is_executable('qsub')
 
 
 class JobResourceRequest:
