@@ -12,3 +12,6 @@ submission scripts for the boss software for the himster
 2. Inside the *example_submit_script.py* change the job option file extension (see **job_option_file_ext**) and the delimiter characters between the base filename and the index/arrayid of the job option file (see **job_option_filename_index_delimiter**)
 3. (optional) Inside the *example_submit_script.py*, you can also change the himster log filename and job name (see **job_name** and **log_file_url**)
 
+Thats it. Now just run the your version of submit script via 
+`./example_submit_script.py <path-to-directory-containing-job-option-files>`
+
