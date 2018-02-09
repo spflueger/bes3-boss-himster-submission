@@ -42,6 +42,7 @@ args = parser.parse_args()
 joblist = []
 
 job_option_file_ext = '.txt'
+job_option_filename_index_delimiter = '_'
 
 job_option_filename_base = get_job_option_base_filename(
     args.job_options_dir_path[0], '', job_option_file_ext)
@@ -51,7 +52,7 @@ job_option_filename_base = get_job_option_base_filename(
 # either given by user or calculate automatically
 [low_index_used, high_index_used] = check_index_range_for_directory(
     args.job_options_dir_path[0],
-    '_(\d+)' + job_option_file_ext + '$')
+    job_option_filename_index_delimiter + '(\d+)' + job_option_file_ext + '$')
 if args.low_index >= 0:
     low_index_used = args.low_index
 if args.high_index >= 0 and args.high_index > args.low_index:
@@ -68,19 +69,21 @@ resource_request.node_scratch_filesize_in_mb = 0
 
 script_path = './run_boss_ana.sh'
 job_name = 'boss-ana'
-log_file_url = args.job_options_dir_path[0]+'/boss_ana.log'
+log_file_url = args.job_options_dir_path[0] + '/boss_ana.log'
 job = himster.Job(resource_request, script_path, job_name, log_file_url)
 print("using job array size of [" +
       str(low_index_used) + " - " + str(high_index_used) + "]")
 job.set_job_array_size(low_index_used, high_index_used)
 
-application_path = 'asdf/asdf/boss.exe'
+application_path = '/path/to/your/boss.exe'
 job.add_exported_user_variable('application_path',
                                application_path)
 job.add_exported_user_variable('job_option_dir',
                                args.job_options_dir_path[0])
 job.add_exported_user_variable('job_option_filename',
                                job_option_filename_base)
+job.add_exported_user_variable('job_option_filename_index_delimiter',
+                               job_option_filename_index_delimiter)
 job.add_exported_user_variable('job_option_file_ext',
                                job_option_file_ext)
 
