@@ -15,6 +15,29 @@ def get_num_jobs_on_himster():
     return int(out)
 
 
+def get_exe_path(exe_name):
+    exe_url = ''
+    found = False
+    for path in os.environ["PATH"].split(os.pathsep):
+        path = path.strip('"')
+        exe_url = os.path.join(path, exe_name)
+        if os.path.isfile(exe_url):
+            found = True
+            break
+    if not found:
+        exe_url = os.path.join(os.getcwd(), exe_name)
+        if not os.path.isfile(exe_url):
+            raise FileNotFoundError('Could not find executable '+str(exe_name))
+    if not os.access(exe_url, os.X_OK):
+        raise PermissionError('Please give '+str(exe_url)+' execute permission!')
+    
+    return exe_url
+
+
+def is_cluster_environment():
+    return is_executable('qsub')
+
+
 def is_executable(exe_name):
     for path in os.environ["PATH"].split(os.pathsep):
         path = path.strip('"')
@@ -22,10 +45,6 @@ def is_executable(exe_name):
         if os.path.isfile(exe_url) and os.access(exe_url, os.X_OK):
             return True
     return False
-
-
-def is_cluster_environment():
-    return is_executable('qsub')
 
 
 class JobResourceRequest:

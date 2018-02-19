@@ -79,15 +79,12 @@ resource_request.memory_in_mb = 2000
 resource_request.virtual_memory_in_mb = 2000
 resource_request.node_scratch_filesize_in_mb = 0
 
-
-if not himster.is_executable(script_name):
-    # did not find the application in the path env
-    # then try local dir
-    script_name = './' + script_name
+# get full path of the executable
+script_fullpath = himster.get_exe_path(script_name)
 
 # create a himster job
 log_file_url = args.job_options_dir_path[0] + '/' + log_filename
-job = himster.Job(resource_request, script_name, job_name, log_file_url)
+job = himster.Job(resource_request, script_fullpath, job_name, log_file_url)
 print("using job array size of [" +
       str(low_index_used) + " - " + str(high_index_used) + "]")
 job.set_job_array_size(low_index_used, high_index_used)
