@@ -8,8 +8,13 @@ Thats all.
 ### Overview
 All of these files have to reside on the himster of course...
 - *himster.py* and *general.py*: are two small python files which take care of himster job submission and help finding files in directories
-- *example_submit_script.py*: as the name suggest... An example himster submission script. Should work out of the box, after two simple modifications (see steps 1 and 2 below)
+- *example_submit_script.py*: as the name suggest... An example himster submission script. Should work out of the box, after two simple modifications (see steps 1 and 2 below). This
+can be used to submit a single boss task with one job option file per job.
 - *run_boss_ana.sh*: shell script, which is executed on the himster for each individual job and calls boss.exe
+- *create_sim_reco_job_options.py*: this script generates job option files needed for simulation and reconstruction runs.
+- *simreco_submit_script.py*: this script is based on the example_submit_script.py above but
+is modified for the use of simulation and reconstruction with boss. This should work out of the box as well, once the same modifications as in the example script above have been made.
+- *run_boss_sim.sh*: a shell script that is used by the simreco_submit_script.py.
 
 ### Usage:
 0. (optional) If you like copy the *example_submit_script.py*

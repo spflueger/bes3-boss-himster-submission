@@ -27,9 +27,20 @@ def check_index_range_for_directory(dir_path, regex_pattern):
     return [lowest_index, highest_index]
 
 
-def get_job_option_base_filename(dir_path, filename_pattern,
+def get_job_option_base_filename(dir_path, filename_patterns,
                                  delimiter, file_ext):
-    job_opt_files = glob(dir_path + '/*' + filename_pattern + '*' + file_ext)
+    job_opt_files_all = glob(dir_path + '/*' + file_ext)
+    job_opt_files = []
+    # filter for patterns
+    for job_opt_file in job_opt_files_all:
+        filename = path.split(job_opt_file)[1]
+        skip = False
+        for pattern in filename_patterns:
+            if pattern not in filename:
+                skip = True
+                break
+        if not skip:
+            job_opt_files.append(job_opt_file)
 
     filename_dict = {}
 

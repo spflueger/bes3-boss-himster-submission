@@ -57,7 +57,7 @@ joblist = []
 # scans the directory for a set of job option files
 # and retrieves the filename base
 job_option_filename_base = get_job_option_base_filename(
-    args.job_options_dir_path[0], args.job_option_filename_pattern,
+    args.job_options_dir_path[0], [args.job_option_filename_pattern],
     job_option_filename_index_delimiter, job_option_file_ext)
 
 # determine the job array index range,

@@ -27,10 +27,12 @@ def get_exe_path(exe_name):
     if not found:
         exe_url = os.path.join(os.getcwd(), exe_name)
         if not os.path.isfile(exe_url):
-            raise FileNotFoundError('Could not find executable '+str(exe_name))
+            raise FileNotFoundError(
+                'Could not find executable ' + str(exe_name))
     if not os.access(exe_url, os.X_OK):
-        raise PermissionError('Please give '+str(exe_url)+' execute permission!')
-    
+        raise PermissionError(
+            'Please give ' + str(exe_url) + ' execute permission!')
+
     return exe_url
 
 
@@ -93,6 +95,9 @@ class Job:
     def set_job_array_size(self, job_array_index_low, job_array_index_high):
         self.job_array_index_low = int(job_array_index_low)
         self.job_array_index_high = int(job_array_index_high)
+        if self.job_array_index_low == self.job_array_index_high:
+            self.add_exported_user_variable(
+                'PBS_ARRAYID', self.job_array_index_low)
 
     def add_exported_user_variable(self, name, value):
         self.exported_user_variables[str(name)] = str(value)
