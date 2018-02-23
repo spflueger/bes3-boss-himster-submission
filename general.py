@@ -35,7 +35,7 @@ def find_file(dir_path, filename_patterns, file_ext):
         filename = path.split(job_opt_file)[1]
         skip = False
         for pattern in filename_patterns:
-            if str(pattern) not in filename:
+            if pattern not in filename:
                 skip = True
                 break
         if not skip:

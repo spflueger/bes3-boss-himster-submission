@@ -225,7 +225,7 @@ for dec_file in dec_file_list:
         job.add_exported_user_variable('sim_job_option_template_path',
                                        os.path.join(sim_job_option_dir,
                                                     sim_job_option_filename))
-        dec_file_path = find_file(dec_file_dir, dec_file, dec_file_ext)
+        dec_file_path = find_file(dec_file_dir, [dec_file], dec_file_ext)
         job.add_exported_user_variable('dec_file_path', dec_file_path)
         job.add_exported_user_variable('pdt_table_path', pdt_table_path)
     job.add_exported_user_variable('rtraw_filepath_base',
