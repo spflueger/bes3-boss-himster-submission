@@ -15,7 +15,7 @@ if [[ "$task_type" -eq 1 || "$task_type" -eq 3 ]]; then
     outfilename="$job_option_dir/$sim_job_option_filename"
 
 cat << EOT > $outfilename
-#include "$sim_job_option_template_path";
+#include "$sim_job_option_template_path"
 EvtDecay.PdtTableDir = "$pdt_table_path";
 EvtDecay.userDecayTableName = "$dec_file_path";
 BesRndmGenSvc.RndmSeed = $JOBID;
@@ -36,7 +36,7 @@ if [[ "$task_type" -eq 2 || "$task_type" -eq 3 ]]; then
     outfilename="$job_option_dir/$rec_job_option_filename"
 
 cat << EOT > $outfilename
-#include "$rec_job_option_template_path";
+#include "$rec_job_option_template_path"
 $RndTrg
 BesRndmGenSvc.RndmSeed = $JOBID;
 EventCnvSvc.digiRootInputFile = "$rtraw_filepath";
@@ -66,7 +66,8 @@ if [[ "$task_type" -eq 2 || "$task_type" -eq 3 ]]; then
     if [ -f "input_filepath" ]; then
         echo "rtraw file exists! Running boss.exe ..."
         time boss.exe $jobopt
-    fi
+    else
+        echo "ERROR: could not find rtraw $input_filepath which is needed for the reconstruction!"
 fi
 
 rm -rf $job_option_dir
