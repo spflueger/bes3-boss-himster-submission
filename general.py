@@ -59,5 +59,9 @@ def find_file(dir_path, filename_patterns, file_ext):
         while return_index not in range(0, len(job_opt_files)):
             return_index = input('Please enter a number corresponding'
                                  ' to the template you want to use: ')
+            try:
+                return_index = int(return_index)
+            except ValueError:
+                return_index = -1
 
     return job_opt_files[return_index]
