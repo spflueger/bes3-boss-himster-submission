@@ -14,13 +14,14 @@ if [[ "$task_type" -eq 1 || "$task_type" -eq 3 ]]; then
     sim_job_option_filename="sim_$Ecms-$JOBID.txt"
     outfilename="$job_option_dir/$sim_job_option_filename"
 
-cat << EOT > $outfilename
-#include "$sim_job_option_template_path"
-EvtDecay.PdtTableDir = "$pdt_table_path";
+echo "#include \"$sim_job_option_template_path\"" > $outfilename
+if [ -f $pdt_table_path ]; then
+    echo "EvtDecay.PdtTableDir = \"$pdt_table_path\";" >> $outfilename
+cat << EOT >> $outfilename
 EvtDecay.userDecayTableName = "$dec_file_path";
 BesRndmGenSvc.RndmSeed = $JOBID;
 RootCnvSvc.digiRootOutputFile = "$rtraw_filepath";
-ApplicationMgr.EvtMax = $events_per_job;
+ApplicationMgr.EvtMax = $events_per_job;"
 EOT
 
 fi

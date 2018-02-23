@@ -15,6 +15,7 @@
         "dec_file_ext": ".dec",
         "job_opt_template_subdir": "run/recSimOptions",
         "pdt_table_subpath": "run/pdt.table",
+        "use_own_pdt_table": false,
         "mc_subdir": "mc",
         "inclmc_subdir": "inclmc",
         "digi_root_subdir": "rtraw",

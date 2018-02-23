@@ -126,8 +126,9 @@ if args.task_type == 1 or args.task_type == 3:
     if sim_job_option_dir is '':
         sim_job_option_dir = os.path.join(
             workarea, simreco_config['job_opt_template_subdir'])
-    pdt_table_path = os.path.join(
-        workarea, simreco_config['pdt_table_subpath'])
+    if simreco_config['use_own_pdt_table']:
+        pdt_table_path = os.path.join(
+            workarea, simreco_config['pdt_table_subpath'])
 
     mc_dirname = simreco_config['mc_subdir']
     if args.background:
