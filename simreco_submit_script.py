@@ -205,7 +205,7 @@ for dec_file in dec_file_list:
     application_path = simreco_config['application_path']
     job_name = simreco_config['job_name'] + base
     log_file_url = os.path.join(
-        workarea, simreco_config['logfile_subdir'] +
+        datadir, simreco_config['logfile_subdir'] +
         '/' + base + '_' + str(Ecms) + '/'
         + simreco_config['log_filename'])
     log_file_dirname = os.path.dirname(log_file_url)
