@@ -1,0 +1,30 @@
+{
+    "general": {
+        "boss_workarea_envname": "BOSSWORKAREA",
+        "boss_data_envname": "BOSSDATA"
+    },
+    "analysis": {
+        "job_name": "boss-ana",
+        "job_option_file_ext": ".txt",
+        "job_option_filename_index_delimiter": "-",
+        "application_path": "/path/to/your/boss.exe",
+        "log_filename": "boss_ana.log"
+    },
+    "simreco": {
+        "dec_file_subdir": "run/decfiles",
+        "dec_file_ext": ".dec",
+        "job_opt_template_subdir": "run/recSimOptions",
+        "pdt_table_subpath": "run/pdt.table",
+        "mc_subdir": "mc",
+        "inclmc_subdir": "inclmc",
+        "digi_root_subdir": "rtraw",
+        "dst_output_subdir": "dst",
+        "logfile_subdir": "logs",
+        "use_energy_subdir_for_dsts": true,
+        "job_name": "boss-sim",
+        "job_option_file_ext": ".txt",
+        "job_option_filename_index_delimiter": "-",
+        "application_path": "/path/to/your/boss.exe",
+        "log_filename": "boss_sim.log"
+    }
+}

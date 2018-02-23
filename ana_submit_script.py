@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import argparse
+import json
 
 import himster
 from general import (check_index_range_for_directory,
@@ -10,15 +11,15 @@ from general import (check_index_range_for_directory,
 # you do not have to touch this line unless you rename the script
 script_name = 'run_boss.sh'
 
-# -------- user defined variables --------
-# set these according to your needs
-job_name = 'boss-ana'
-job_option_file_ext = '.txt'
-job_option_filename_index_delimiter = '-'
-application_path = '/path/to/your/boss.exe'
-log_filename = 'boss_ana.log'
-# ----------------------------------------
-
+json_file = open('config.json')
+config_data = json.loads(json_file.read())
+analysis_config = config_data['analysis']
+# set variables from config file
+job_name = analysis_config['job_name']
+job_option_file_ext = analysis_config['job_option_file_ext']
+job_option_filename_index_delimiter = analysis_config['job_option_filename_index_delimiter']
+application_path = analysis_config['application_path']
+log_filename = analysis_config['log_filename']
 
 parser = argparse.ArgumentParser(
     description='Script for submission of Boss analysis jobs',

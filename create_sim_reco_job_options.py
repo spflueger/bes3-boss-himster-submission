@@ -4,64 +4,48 @@ import os
 
 import argparse
 
-
-datadir = os.environ["MYDATA"]
-workarea = os.environ["WORKAREA"]
-
-
-dec_file_dir = os.path.join(workarea, 'run/decfiles/')
-job_opt_dir = os.path.join(workarea, 'run/recSimOptions/')
-pdt_table_path = os.path.join(workarea, 'run/pdt.table')
-digi_root_dir = os.path.join(datadir, 'mc/generated/rtraw/')
-dst_output_dir = os.path.join(datadir, 'mc/generated/dst/')
-
+datadir = os.environ["BOSSDATA"]
+workarea = os.environ["BOSSWORKAREA"]
 
 parser = argparse.ArgumentParser(
-    description='Script for submission of Boss analysis jobs',
+    description='Script for creation of boss job option files (bes3)',
     formatter_class=argparse.RawTextHelpFormatter)
 
-parser.add_argument('number_of_jobs', metavar='number_of_jobs',
-                    type=int, nargs=1,
-                    help='number of jobs per decay file')
-parser.add_argument('Ecms', metavar='Ecms', type=int, nargs=1,
+parser.add_argument('Ecms', type=int, nargs=1,
                     help='CMS energy in MeV')
-parser.add_argument('dec_files', metavar='dec_files', type=str, nargs='+',
-                    help='list of decay files')
-
-parser.add_argument('--number_of_events', metavar='number_of_events',
-                    type=int, default=10000)
-parser.add_argument('--start_job_index', metavar='start_job_index',
-                    type=int, default=1)
-parser.add_argument('--task', metavar='task', type=int, default=3,
+parser.add_argument('events_per_job', type=int, nargs=1,
+                    help='events per job')
+parser.add_argument('job_index', metavar='job_index',
+                    type=int, nargs=1,
+                    help='index of the job, which is used in filenames'
+                    ' and as the seed')
+parser.add_argument('task_type',
+                    type=int,
                     choices=range(1, 4),
-                    help='Possible tasks are:'
+                    help='Type of task:'
                     '\n1 -- simulation only'
                     '\n2 -- reconstruction only'
                     '\n3 -- both (default)')
-parser.add_argument('--isr', default=False,
-                    action='store_true',
-                    help='Use top job option file with ISR correction enabled.'
-                    '\nFor this option to work, there has to be a template job'
-                    '\noption file with the name'
-                    '\n$MYANAPKGROOT/run/jopOptions_sim_isr_$Ecms.txt.'
-                    '\nThe default template should have ISR correction '
-                    'disabled'
-                    '\nin KKMC (otherwise this option is useless).')
+parser.add_argument('sim_job_option_template_path', type=str, nargs=1)
+parser.add_argument('rec_job_option_template_path', type=str, nargs=1)
+parser.add_argument('simrec_job_opt_dir', type=str, nargs=1)
+parser.add_argument('digi_root_dir', type=str, nargs=1)
+parser.add_argument('dst_output_dir', type=str, nargs=1)
+parser.add_argument('job_option_filename_index_delimiter', type=str, nargs=1)
+parser.add_argument('job_option_file_ext', type=str, nargs=1)
+parser.add_argument('dec_files', metavar='dec_files', type=str, nargs='*',
+                    help='list of decay files')            
 
 args = parser.parse_args()
 
+Ecms = args.Ecms[0]
 
 RndTrg = ""
 # Himster uses different queue name and different dir for Random Trigger Data
 if "himster" in os.environ["HOSTNAME"]:
-    RndTrg = 'MixerAlg.ReplaceDataPath = '
-    '\"/data/group/bes3/bes3data/offline/data/randomtrg/\";'
+    RndTrg = "MixerAlg.ReplaceDataPath = \"/data/group/bes3/bes3data/offline/data/randomtrg/\";"
 
-
-Ecms = args.Ecms[0]
-
-for dec_file in args.dec_files:
-    dec_file_path = os.path.join(dec_file_dir, dec_file)
+for dec_file_path in args.dec_files:
     if not os.path.isfile(dec_file_path):
         raise FileNotFoundError('Decay file ' + dec_file_path + ' not found!')
 
@@ -88,51 +72,52 @@ for dec_file in args.dec_files:
                                     job_options_file_paths[-1] +
                                     ' not found!')
 
-    for job_index in range(args.start_job_index, args.number_of_jobs[0] + 1):
-        seed = job_index
-        if args.task == 1 or args.task == 3:
-            # Create the simulation card
-            outfilename = "sim_" + str(base) + "_" \
-                + str(Ecms) + "-" \
-                + str(job_index) + ".txt"
-            with open(outfilename, "w") as out_file:
-                out_file.write("#include \"" +
-                               str(job_options_file_paths[0]) + "\";")
-                out_file.write("\nEvtDecay.PdtTableDir = \"" +
-                               str(pdt_table_path) + "\";")
-                out_file.write(
-                    "\nEvtDecay.userDecayTableName = \"" +
-                    str(dec_file_path) + "\";")
-                out_file.write("\nBesRndmGenSvc.RndmSeed = " + str(seed) + ";")
-                temp_rtraw_filename = base + "_" + \
-                    str(Ecms) + "-" + str(job_index) + ".rtraw"
-                out_file.write("\nRootCnvSvc.digiRootOutputFile = \"" +
-                               str(os.path.join(digi_root_dir,
-                                                temp_rtraw_filename)) + "\";")
-                out_file.write("\nApplicationMgr.EvtMax = " +
-                               str(args.number_of_events) + ";")
-                out_file.close()
+    seed = job_index
+    if args.task == 1 or args.task == 3:
+        # Create the simulation card
+        outfilename = simrec_job_opt_dir + "/sim_" + str(base) + "_" \
+            + str(Ecms) + "-" \
+            + str(job_index) + ".txt"
+        with open(outfilename, "w") as out_file:
+            out_file.write("#include \"" +
+                            str(job_options_file_paths[0]) + "\";")
+            out_file.write("\nEvtDecay.PdtTableDir = \"" +
+                            str(pdt_table_path) + "\";")
+            out_file.write(
+                "\nEvtDecay.userDecayTableName = \"" +
+                str(dec_file_path) + "\";")
+            out_file.write("\nBesRndmGenSvc.RndmSeed = " + str(seed) + ";")
+            temp_rtraw_filename = base + "_" + \
+                str(Ecms) + "-" + str(job_index) + ".rtraw"
+            out_file.write("\nRootCnvSvc.digiRootOutputFile = \"" +
+                            str(os.path.join(digi_root_dir,
+                                            temp_rtraw_filename)) + "\";")
+            out_file.write("\nApplicationMgr.EvtMax = " +
+                            str(args.number_of_events) + ";")
+            out_file.close()
 
-        if args.task == 2 or args.task == 3:
-            # Create the reconstruction card
-            outfilename = "rec_" + str(base) + "_" \
-                + str(Ecms) + "-" \
-                + str(job_index) + ".txt"
-            with open(outfilename, "w") as out_file:
-                out_file.write("#include \"" +
-                               str(job_options_file_paths[1]) + "\";")
-                out_file.write("\n" + str(RndTrg))
-                out_file.write("\nBesRndmGenSvc.RndmSeed = " + str(seed) + ";")
-                temp_rtraw_filename = base + "_" + \
-                    str(Ecms) + "-" + str(job_index) + ".rtraw"
-                out_file.write("\nEventCnvSvc.digiRootInputFile = \"" +
-                               str(os.path.join(digi_root_dir,
-                                                temp_rtraw_filename)) + "\";")
-                temp_dst_filename = base + "_" + \
-                    str(Ecms) + "-" + str(job_index) + ".dst"
-                out_file.write("\nEventCnvSvc.digiRootOutputFile = \"" +
-                               str(os.path.join(dst_output_dir,
-                                                temp_dst_filename)) + "\";")
-                out_file.write("\nApplicationMgr.EvtMax = " +
-                               str(args.number_of_events) + ";")
-                out_file.close()
+    if args.task == 2 or args.task == 3:
+        # Create the reconstruction card
+        outfilename = simrec_job_opt_dir + "/rec_" + \
+            str(base) + "_" + str(Ecms) + "-" + str(job_index) + ".txt"
+        with open(outfilename, "w") as out_file:
+            out_file.write("#include \"" +
+                            str(job_options_file_paths[1]) + "\";")
+            out_file.write("\n" + str(RndTrg))
+            out_file.write("\nBesRndmGenSvc.RndmSeed = " + str(seed) + ";")
+            temp_rtraw_filename = base + "_" + \
+                str(Ecms) + "-" + str(job_index) + ".rtraw"
+            out_file.write("\nEventCnvSvc.digiRootInputFile = \"" +
+                            str(os.path.join(digi_root_dir,
+                                            temp_rtraw_filename)) + "\";")
+            temp_dst_filename = base
+            if not use_energy_subdir_for_dsts:
+                temp_dst_filename = temp_dst_filename + "_" + str(Ecms)
+            temp_dst_filename = temp_dst_filename + \
+                "-" + str(job_index) + ".dst"
+            out_file.write("\nEventCnvSvc.digiRootOutputFile = \"" +
+                            str(os.path.join(dst_output_dir,
+                                            temp_dst_filename)) + "\";")
+            out_file.write("\nApplicationMgr.EvtMax = " +
+                            str(args.number_of_events) + ";")
+            out_file.close()
