@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
 import os
-
 import argparse
 import json
 
@@ -11,8 +10,12 @@ from general import find_file
 
 # you do not have to touch this line unless you rename the script
 script_name = 'run_boss_sim.sh'
+# get full path of the executable
+script_fullpath = himster.get_exe_path(script_name)
+script_home_path = os.path.abspath(os.path.dirname(script_fullpath))
 
-json_file = open('config.json')
+
+json_file = open(script_home_path + '/config.json')
 config_data = json.loads(json_file.read())
 simreco_config = config_data['simreco']
 job_option_file_ext = simreco_config['job_option_file_ext']
@@ -179,17 +182,18 @@ print("using job array size of [" +
 joblist = []
 
 # resource request of the job
-job_walltime_in_minutes = 1 * 60
+job_res_config = simreco_config['job_resource_request']
+job_walltime_in_minutes = 60 * int(job_res_config['walltime_in_hours'])
 resource_request = himster.JobResourceRequest(job_walltime_in_minutes)
-resource_request.number_of_nodes = 1
-resource_request.processors_per_node = 1
-resource_request.memory_in_mb = 2000
-resource_request.virtual_memory_in_mb = 2000
-resource_request.node_scratch_filesize_in_mb = 0
+resource_request.number_of_nodes = int(job_res_config['number_of_nodes'])
+resource_request.processors_per_node = int(
+    job_res_config['processors_per_node'])
+resource_request.memory_in_mb = int(job_res_config['memory_in_mb'])
+resource_request.virtual_memory_in_mb = int(
+    job_res_config['virtual_memory_in_mb'])
+resource_request.node_scratch_filesize_in_mb = int(
+    job_res_config['node_scratch_filesize_in_mb'])
 
-# get full path of the executable
-script_fullpath = himster.get_exe_path(script_name)
-script_home_path = os.path.abspath(os.path.dirname(script_fullpath))
 
 for dec_file in dec_file_list:
     base = os.path.splitext(dec_file)[0]
