@@ -24,7 +24,7 @@ cat << EOT >> $outfilename
 EvtDecay.userDecayTableName = "$dec_file_path";
 BesRndmGenSvc.RndmSeed = $JOBID;
 RootCnvSvc.digiRootOutputFile = "$rtraw_filepath";
-ApplicationMgr.EvtMax = $events_per_job;"
+ApplicationMgr.EvtMax = $events_per_job;
 EOT
 
     jobopt="${job_option_dir}/${sim_job_option_filename}"
