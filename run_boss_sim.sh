@@ -1,5 +1,7 @@
 #!/bin/sh
 
+is_himster=1
+
 # first create job option files
 job_option_dir=`mktemp -d`
 JOBID=${PBS_ARRAYID}
@@ -37,7 +39,7 @@ fi
 if [[ "$task_type" -eq 2 || "$task_type" -eq 3 ]]; then
     RndTrg=""
     # Himster uses different queue name and different dir for Random Trigger Data
-    if [[ $HOSTNAME = *"himster"* ]]; then
+    if [ ${is_himster} ]; then
         RndTrg="MixerAlg.ReplaceDataPath = \"/data/group/bes3/bes3data/offline/data/randomtrg/\";"
     fi
 
@@ -48,7 +50,7 @@ cat << EOT > $outfilename
 #include "$rec_job_option_template_path"
 $RndTrg
 BesRndmGenSvc.RndmSeed = $JOBID;
-EventCnvSvc.digiRootInputFile = "$rtraw_filepath";
+EventCnvSvc.digiRootInputFile = {"$rtraw_filepath"};
 EventCnvSvc.digiRootOutputFile = "$dst_filepath";
 ApplicationMgr.EvtMax = $events_per_job;
 EOT
@@ -56,9 +58,8 @@ EOT
     jobopt="${job_option_dir}/${rec_job_option_filename}"
     echo "using job options file: $jobopt"
     cat $jobopt
-    input_filepath=`cat $jobopt | grep EventCnvSvc.digiRootInputFile | awk '{print $3}' | sed 's/;//' | sed 's/"//'`
     # additionally check if the required files from the simulation exist
-    if [ -f "$input_filepath" ]; then
+    if [ -f "$rtraw_filepath" ]; then
         echo "rtraw file exists! Running boss.exe ..."
         time boss.exe $jobopt
     else

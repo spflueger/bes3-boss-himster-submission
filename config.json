@@ -2,7 +2,6 @@
     "general": {
         "boss_workarea_envname": "BOSSWORKAREA",
         "boss_data_envname": "BOSSDATA",
-        "use_energy_subdir_for_dsts": true,
         "use_energy_and_dec_filename_data_subdirs": true,
         "logfile_subdir": "logs"
     },
@@ -12,6 +11,7 @@
         "job_opt_template_subdir": "run/anaOptions",
         "job_name": "boss-ana",
         "application_path": "/path/to/your/boss.exe",
+        "default_algorithm": "",
         "log_filename": "boss_ana.log",
         "job_resource_request": {
             "walltime_in_hours": 2,

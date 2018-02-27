@@ -121,6 +121,7 @@ sim_job_option_filename = ''
 rec_job_option_filename = ''
 
 pdt_table_path = ''
+use_energy_subdirs = general_config['use_energy_and_dec_filename_data_subdirs']
 # scans directories for job option template files
 # and selects correct one
 if args.task_type == 1 or args.task_type == 3:
@@ -137,6 +138,8 @@ if args.task_type == 1 or args.task_type == 3:
         mc_dirname = simreco_config['inclmc_subdir']
     digi_root_dir = os.path.join(
         datadir, mc_dirname + '/' + simreco_config['digi_root_subdir'])
+    if use_energy_subdirs:
+        digi_root_dir = os.path.join(digi_root_dir, str(Ecms))
 
     if not os.path.exists(digi_root_dir):
         os.makedirs(digi_root_dir)
@@ -154,10 +157,12 @@ if args.task_type == 2 or args.task_type == 3:
         rec_job_option_dir = os.path.join(
             workarea, simreco_config['job_opt_template_subdir'])
 
+    mc_dirname = simreco_config['mc_subdir']
+    if args.background:
+        mc_dirname = simreco_config['inclmc_subdir']
     dst_output_dir = os.path.join(
         datadir, mc_dirname + '/' + simreco_config['dst_output_subdir'])
-    use_energy_subdir_for_dsts = general_config['use_energy_subdir_for_dsts']
-    if use_energy_subdir_for_dsts:
+    if use_energy_subdirs:
         dst_output_dir = os.path.join(dst_output_dir, str(Ecms))
 
     if not os.path.exists(dst_output_dir):
@@ -197,10 +202,13 @@ resource_request.node_scratch_filesize_in_mb = int(
 for dec_file in dec_file_list:
     base = os.path.splitext(dec_file)[0]
 
-    rtraw_filepath_base = digi_root_dir + "/" + base + "_" + \
-        str(Ecms) + "-"
+    rtraw_filepath_base = digi_root_dir + "/" + base 
+    if not use_energy_subdirs:
+        rtraw_filepath_base = rtraw_filepath_base + "_" + str(Ecms)
+    rtraw_filepath_base = rtraw_filepath_base + "-"
+    
     dst_filepath_base = dst_output_dir + "/" + base
-    if not use_energy_subdir_for_dsts:
+    if not use_energy_subdirs:
         dst_filepath_base = dst_filepath_base + "_" + str(Ecms)
     dst_filepath_base = dst_filepath_base + "-"
 
