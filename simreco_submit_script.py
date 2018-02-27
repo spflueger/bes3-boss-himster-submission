@@ -20,7 +20,6 @@ config_data = json.loads(json_file.read())
 simreco_config = config_data['simreco']
 job_option_file_ext = simreco_config['job_option_file_ext']
 dec_file_ext = simreco_config['dec_file_ext']
-job_option_filename_index_delimiter = simreco_config['job_option_filename_index_delimiter']
 general_config = config_data['general']
 datadir = os.environ[general_config['boss_data_envname']]
 workarea = os.environ[general_config['boss_workarea_envname']]
@@ -157,7 +156,7 @@ if args.task_type == 2 or args.task_type == 3:
 
     dst_output_dir = os.path.join(
         datadir, mc_dirname + '/' + simreco_config['dst_output_subdir'])
-    use_energy_subdir_for_dsts = simreco_config['use_energy_subdir_for_dsts']
+    use_energy_subdir_for_dsts = general_config['use_energy_subdir_for_dsts']
     if use_energy_subdir_for_dsts:
         dst_output_dir = os.path.join(dst_output_dir, str(Ecms))
 
@@ -210,7 +209,7 @@ for dec_file in dec_file_list:
     application_path = simreco_config['application_path']
     job_name = simreco_config['job_name'] + base
     log_file_url = os.path.join(
-        datadir, simreco_config['logfile_subdir'] +
+        datadir, general_config['logfile_subdir'] +
         '/' + base + '_' + str(Ecms) + '/'
         + simreco_config['log_filename'])
     log_file_dirname = os.path.dirname(log_file_url)

@@ -56,9 +56,9 @@ EOT
     jobopt="${job_option_dir}/${rec_job_option_filename}"
     echo "using job options file: $jobopt"
     cat $jobopt
-    input_filepath=`cat $jobopt | grep EventCnvSvc.digiRootInputFile | awk '{print $3}' | sed 's/;//'`
+    input_filepath=`cat $jobopt | grep EventCnvSvc.digiRootInputFile | awk '{print $3}' | sed 's/;//' | sed 's/"//'`
     # additionally check if the required files from the simulation exist
-    if [ -f "input_filepath" ]; then
+    if [ -f "$input_filepath" ]; then
         echo "rtraw file exists! Running boss.exe ..."
         time boss.exe $jobopt
     else

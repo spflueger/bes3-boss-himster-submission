@@ -65,3 +65,29 @@ def find_file(dir_path, filename_patterns, file_ext):
                 return_index = -1
 
     return job_opt_files[return_index]
+
+
+def find_files(dir_path, filename_patterns, file_ext):
+    files_all = glob(dir_path + '/*' + file_ext)
+    files = []
+    # filter for patterns
+    for file in files_all:
+        filename = path.split(file)[1]
+        skip = False
+        for pattern in filename_patterns:
+            if pattern not in filename:
+                skip = True
+                break
+        if not skip:
+            files.append(file)
+
+    if len(files) == 0:
+        raise FileNotFoundError(
+            'Did not find any files in the directory, that'
+            ' match your requested pattern.\n'
+            'directory: ' + dir_path + '\n'
+            'patterns: ' + str(filename_patterns) + '\n'
+            'file ext: ' + str(file_ext) + '\n'
+            'Please double check your request.')
+
+    return files

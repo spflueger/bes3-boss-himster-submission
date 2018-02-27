@@ -1,47 +1,57 @@
 {
     "general": {
         "boss_workarea_envname": "BOSSWORKAREA",
-        "boss_data_envname": "BOSSDATA"
+        "boss_data_envname": "BOSSDATA",
+        "use_energy_subdir_for_dsts": true,
+        "use_energy_and_dec_filename_data_subdirs": true,
+        "logfile_subdir": "logs"
     },
     "analysis": {
-        "job_name": "boss-ana",
         "job_option_file_ext": ".txt",
-        "job_option_filename_index_delimiter": "-",
+        "root_output_subdir": "root",
+        "job_opt_template_subdir": "run/anaOptions",
+        "job_name": "boss-ana",
         "application_path": "/path/to/your/boss.exe",
         "log_filename": "boss_ana.log",
         "job_resource_request": {
             "walltime_in_hours": 2,
             "number_of_nodes": 1,
             "processors_per_node": 1,
-            "memory_in_mb": 1500,
-            "virtual_memory_in_mb": 1500,
-            "node_scratch_filesize_in_mb": 0
+            "memory_in_mb": 2000,
+            "virtual_memory_in_mb": 2000,
+            "node_scratch_filesize_in_mb": 100
         }
     },
     "simreco": {
         "dec_file_subdir": "run/decfiles",
         "dec_file_ext": ".dec",
+        "job_option_file_ext": ".txt",
         "job_opt_template_subdir": "run/recSimOptions",
         "pdt_table_subpath": "run/pdt.table",
         "use_own_pdt_table": false,
+        "data_subdir": "data",
         "mc_subdir": "mc",
         "inclmc_subdir": "inclmc",
         "digi_root_subdir": "rtraw",
         "dst_output_subdir": "dst",
-        "logfile_subdir": "logs",
-        "use_energy_subdir_for_dsts": true,
         "job_name": "boss-sim",
-        "job_option_file_ext": ".txt",
-        "job_option_filename_index_delimiter": "-",
         "application_path": "/path/to/your/boss.exe",
         "log_filename": "boss_sim.log",
         "job_resource_request": {
-            "walltime_in_hours": 8,
+            "walltime_in_hours": 1,
             "number_of_nodes": 1,
             "processors_per_node": 1,
-            "memory_in_mb": 1500,
-            "virtual_memory_in_mb": 1500,
-            "node_scratch_filesize_in_mb": 0
+            "memory_in_mb": 2000,
+            "virtual_memory_in_mb": 2000,
+            "node_scratch_filesize_in_mb": 500
         }
+    },
+
+    "possible_energies": {
+        "4230": 4.22626,
+        "4260": 4.25797,
+        "4360": 4.35826,
+        "4420": 4.41558,
+        "4600": 4.600
     }
 }
