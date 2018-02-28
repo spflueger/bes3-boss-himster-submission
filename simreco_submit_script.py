@@ -200,26 +200,44 @@ resource_request.node_scratch_filesize_in_mb = int(
 
 
 for dec_file in dec_file_list:
-    base = os.path.splitext(dec_file)[0]
+    dec_file_path = find_file(dec_file_dir, [dec_file], dec_file_ext)
+    base = os.path.splitext(os.path.split(dec_file_path)[1])[0]
 
-    rtraw_filepath_base = digi_root_dir + "/" + base 
-    if not use_energy_subdirs:
-        rtraw_filepath_base = rtraw_filepath_base + "_" + str(Ecms)
-    rtraw_filepath_base = rtraw_filepath_base + "-"
-    
-    dst_filepath_base = dst_output_dir + "/" + base
-    if not use_energy_subdirs:
-        dst_filepath_base = dst_filepath_base + "_" + str(Ecms)
-    dst_filepath_base = dst_filepath_base + "-"
+    rtraw_dir = digi_root_dir + "/"
+    rtraw_filename_base = ''
+    if use_energy_subdirs:
+        rtraw_dir += base + "/"
+        rtraw_filename_base = 'digi'
+    else:
+        rtraw_filename_base = base + '_' + str(Ecms)
+    rtraw_filepath_base = rtraw_dir + rtraw_filename_base + '-'
+    if not os.path.exists(rtraw_dir):
+        os.makedirs(rtraw_dir)
+
+    dst_dir = dst_output_dir + "/"
+    dst_filename_base = ''
+    if use_energy_subdirs:
+        dst_dir += base + "/"
+        dst_filename_base = 'digi'
+    else:
+        dst_filename_base = base + '_' + str(Ecms)
+    dst_filepath_base = dst_dir + dst_filename_base + '-'
+    if not os.path.exists(dst_dir):
+        os.makedirs(dst_dir)
 
     # create a himster job
     # set variables from config file
     application_path = simreco_config['application_path']
     job_name = simreco_config['job_name'] + base
     log_file_url = os.path.join(
-        datadir, general_config['logfile_subdir'] +
-        '/' + base + '_' + str(Ecms) + '/'
-        + simreco_config['log_filename'])
+        datadir, general_config['logfile_subdir'])
+    if use_energy_subdirs:
+        log_file_url += '/' + str(Ecms) + '/' + base + \
+            '/' + simreco_config['log_filename']
+    else:
+        log_file_url += '/' + base + '_' + \
+            str(Ecms) + '_' + simreco_config['log_filename']
+
     log_file_dirname = os.path.dirname(log_file_url)
     if not os.path.exists(log_file_dirname):
         os.makedirs(log_file_dirname)
@@ -236,7 +254,6 @@ for dec_file in dec_file_list:
         job.add_exported_user_variable('sim_job_option_template_path',
                                        os.path.join(sim_job_option_dir,
                                                     sim_job_option_filename))
-        dec_file_path = find_file(dec_file_dir, [dec_file], dec_file_ext)
         job.add_exported_user_variable('dec_file_path', dec_file_path)
         job.add_exported_user_variable('pdt_table_path', pdt_table_path)
     job.add_exported_user_variable('rtraw_filepath_base',

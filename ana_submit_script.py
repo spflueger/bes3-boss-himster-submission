@@ -59,9 +59,12 @@ resource_request.node_scratch_filesize_in_mb = int(
 # create a himster job
 log_filename = analysis_config['log_filename']
 job_name = analysis_config['job_name']
-log_file_url = job_config_data['output_dir'] + '/' + log_filename
+
+log_file_dir = os.path.dirname(job_config_data['log_file_url'])
+if not os.path.exists(log_file_dir):
+    os.makedirs(log_file_dir)
 job = himster.Job(resource_request, script_fullpath,
-                  job_name, log_file_url)
+                  job_name, job_config_data['log_file_url'])
 
 # TODO: at this point we have to determine which jobs to send out
 low_index_used = job_config_data['job_array_start_index']
@@ -74,8 +77,6 @@ job.add_exported_user_variable('application_path',
                                job_config_data['boss_exe_path'])
 job.add_exported_user_variable('dst_chunk_file_path',
                                job_config_data['dst_chunk_file_path'])
-job.add_exported_user_variable('Ecms',
-                               job_config_data['Ecms'])
 job.add_exported_user_variable('ana_job_option_template_path',
                                job_config_data['ana_job_option_template_path'])
 job.add_exported_user_variable('output_dir',

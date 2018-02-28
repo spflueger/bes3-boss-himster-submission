@@ -91,3 +91,57 @@ def find_files(dir_path, filename_patterns, file_ext):
             'Please double check your request.')
 
     return files
+
+
+def find_dir(dir_path, subdir_name_patterns):
+    dirs_all = listdir(dir_path)
+    dirs = []
+    # filter for patterns
+    for dirname in dirs_all:
+        skip = False
+        for pattern in subdir_name_patterns:
+            if pattern not in dirname:
+                skip = True
+                break
+        if not skip:
+            dirs.append(dirname)
+
+    if len(dirs) == 0:
+        raise FileNotFoundError(
+            'Did not find any directory which matches your requested'
+            ' patterns.\n'
+            'directory: ' + dir_path + '\n'
+            'patterns: ' + str(subdir_name_patterns) + '\n'
+            'Please double check your request.')
+    return_index = 0
+    if len(dirs) > 1:
+        return_index = -1
+        print("Multiple directories match the search patterns!")
+        for i in dirs:
+            print(str(dirs.index(i)) + ': ' + i)
+        return_index = -1
+        while return_index not in range(0, len(dirs)):
+            return_index = input('Please enter a number corresponding'
+                                 ' to the directory you want to use: ')
+            try:
+                return_index = int(return_index)
+            except ValueError:
+                return_index = -1
+
+    return dirs[return_index]
+
+
+def create_file_chunks(file_list, chunk_size):
+    file_chunks = []
+    # now group files in bundles of chunk size
+    for i in range(0, len(file_list), chunk_size):
+        file_chunks.append(file_list[i:i + chunk_size])
+
+    # if last job got below the total number of jobs
+    # then redistribute
+    if len(file_chunks[-1]) < len(file_chunks):
+        last_chunk = file_chunks.pop()
+        for i in last_chunk:
+            file_chunks[last_chunk.index(i)].append(i)
+
+    return file_chunks

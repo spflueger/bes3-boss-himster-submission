@@ -3,7 +3,8 @@
         "boss_workarea_envname": "BOSSWORKAREA",
         "boss_data_envname": "BOSSDATA",
         "use_energy_and_dec_filename_data_subdirs": true,
-        "logfile_subdir": "logs"
+        "logfile_subdir": "logs",
+        "use_separate_log_dir": true
     },
     "analysis": {
         "job_option_file_ext": ".txt",
@@ -31,7 +32,7 @@
         "use_own_pdt_table": false,
         "data_subdir": "data",
         "mc_subdir": "mc",
-        "inclmc_subdir": "inclmc",
+        "inclmc_subdir": "inclMc",
         "digi_root_subdir": "rtraw",
         "dst_output_subdir": "dst",
         "job_name": "boss-sim",
@@ -45,13 +46,5 @@
             "virtual_memory_in_mb": 2000,
             "node_scratch_filesize_in_mb": 500
         }
-    },
-
-    "possible_energies": {
-        "4230": 4.22626,
-        "4260": 4.25797,
-        "4360": 4.35826,
-        "4420": 4.41558,
-        "4600": 4.600
     }
 }

@@ -4,10 +4,7 @@ import argparse
 import json
 
 import himster
-from general import find_file, find_files
-
-
-possible_energies = {}
+from general import find_file, find_files, find_dir, create_file_chunks
 
 
 # get full path of the executable
@@ -17,24 +14,20 @@ script_dir = os.path.abspath(os.path.dirname(script_fullpath))
 json_file = open(script_dir + '/config.json')
 config_data = json.loads(json_file.read())
 analysis_config = config_data['analysis']
-# set variables from config file
+# set some global variables from config file
 job_option_file_ext = analysis_config['job_option_file_ext']
 application_path = analysis_config['application_path']
 general_config = config_data['general']
 datadir = os.environ[general_config['boss_data_envname']]
 workarea = os.environ[general_config['boss_workarea_envname']]
-
-for energy_key in config_data['possible_energies']:
-    possible_energies[int(energy_key)
-                      ] = config_data['possible_energies'][energy_key]
+use_energy_subdirs = general_config['use_energy_and_dec_filename_data_subdirs']
 
 
 def create_analysis_job_config(ecms, task_type, algorithm, job_opt_dir,
-                               job_opt_pattern, dst_file_subdir,
+                               job_opt_pattern, dst_dir_pattern, dst_file_subdir,
                                dst_file_pattern, files_per_job, root_file_dir):
     ana_job_config = {}
     ana_job_config['boss_exe_path'] = application_path
-    ana_job_config['Ecms'] = ecms
 
     task_pattern = ''
     dst_type_subdir = ''
@@ -61,28 +54,28 @@ def create_analysis_job_config(ecms, task_type, algorithm, job_opt_dir,
         ana_job_option_patterns = [job_opt_pattern]
     ana_job_config['ana_job_option_template_path'] = find_file(
         ana_job_option_dir, ana_job_option_patterns, job_option_file_ext)
+    base = os.path.splitext(os.path.split(
+        ana_job_config['ana_job_option_template_path'])[1])[0]
+    base = base.replace('ana', '')
+    base = base.replace(task_pattern, '')
+    base = base.rstrip('-').rstrip('_').lstrip('-').lstrip('_')
 
     # Search for dst files in the our data dir
     if dst_file_subdir == '':
         dst_file_subdir = config_data['simreco']['dst_output_subdir']
     dst_file_subdir = dst_type_subdir + '/' + dst_file_subdir
+    if use_energy_subdirs:
+        dst_file_subdir += '/' + str(Ecms) + '/'
     dst_file_dir = os.path.join(datadir, dst_file_subdir)
+    dst_decsubdir_name = find_dir(dst_file_dir, dst_dir_pattern)
+    dst_file_dir = os.path.join(
+        dst_file_dir, dst_decsubdir_name)
     dst_file_patterns = []
     if dst_file_pattern != '':
         dst_file_patterns.append(dst_file_pattern)
     dst_data_files = find_files(dst_file_dir, dst_file_patterns, '.dst')
 
-    dst_file_chunks = []
-    # now group datafiles in bundles of
-    for i in range(0, len(dst_data_files), files_per_job):
-        dst_file_chunks.append(dst_data_files[i:i + files_per_job])
-
-    # if last job got below the total number of jobs
-    # then redistribute
-    if len(dst_file_chunks[-1]) < len(dst_file_chunks):
-        last_entry = dst_file_chunks.pop()
-        for i in last_entry:
-            dst_file_chunks[last_entry.index(i)].append(i)
+    dst_file_chunks = create_file_chunks(dst_data_files, files_per_job)
 
     ana_job_config['job_array_start_index'] = 1
     ana_job_config['job_array_last_index'] = len(dst_file_chunks)
@@ -90,11 +83,15 @@ def create_analysis_job_config(ecms, task_type, algorithm, job_opt_dir,
     root_file_dir = os.path.join(
         root_file_dir, dst_type_subdir + '/'
         + analysis_config['root_output_subdir'])
+    if use_energy_subdirs:
+        root_file_dir += '/' + str(Ecms) + '/' + base
     if not os.path.exists(root_file_dir):
         os.makedirs(root_file_dir)
 
     ana_job_config['output_dir'] = root_file_dir
-    root_filename_base = algorithm + '-'
+    root_filename_base = base + '-'
+    if use_energy_subdirs:
+        root_filename_base = 'ana-'
     ana_job_config['root_filename_base'] = root_filename_base
 
     # write dst chunks file
@@ -112,6 +109,18 @@ def create_analysis_job_config(ecms, task_type, algorithm, job_opt_dir,
         outfile.close()
     ana_job_config['dst_chunk_file_path'] = dst_chunk_file_path
 
+    log_file_url = ana_job_config['output_dir']
+    if general_config['use_separate_log_dir']:
+        log_file_url = os.path.join(
+            datadir, general_config['logfile_subdir'])
+    if use_energy_subdirs:
+        log_file_url += '/' + str(Ecms) + '/' + dst_decsubdir_name + \
+            '/' + base + '/' + analysis_config['log_filename']
+    else:
+        log_file_url += '/' + base + '_' + \
+            str(Ecms) + '_' + analysis_config['log_filename']
+    ana_job_config['log_file_url'] = log_file_url
+
     ana_job_config_path = os.path.join(root_file_dir, 'ana_job_config.json')
     print('creating ana job config file: ' + ana_job_config_path)
     with open(ana_job_config_path, 'w') as outfile:
@@ -125,8 +134,8 @@ parser = argparse.ArgumentParser(
     description='Script for submission of Boss analysis jobs',
     formatter_class=argparse.RawTextHelpFormatter)
 
-parser.add_argument('Ecms', metavar='Ecms', type=int, nargs=1,
-                    choices=[x for x, y in possible_energies.items()])
+parser.add_argument('Ecms', metavar='Ecms', type=int, nargs=1)
+parser.add_argument('dst_dirname_pattern', type=str, nargs=1)
 parser.add_argument('--files_per_job', metavar='files_per_job',
                     type=int, default=25)
 parser.add_argument('--task_type',
@@ -185,6 +194,7 @@ for i in task_list:
         create_analysis_job_config(Ecms, i, args.algorithm,
                                    ana_job_option_dir,
                                    args.job_option_filename_pattern,
+                                   args.dst_dirname_pattern,
                                    args.dst_file_subdir,
                                    args.dst_file_pattern,
                                    args.files_per_job,
@@ -194,4 +204,5 @@ for i in task_list:
 
 
 for ana_job_config_path in analysis_job_config_paths:
-    os.system("ana_submit_script.py " + ana_job_config_path)
+    os.system(os.path.join(script_dir, 'ana_submit_script.py') +
+              " " + ana_job_config_path)
