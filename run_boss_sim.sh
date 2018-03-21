@@ -6,6 +6,10 @@ is_himster=1
 temp_outdir=`mktemp -d --tmpdir=/local/scratch`
 JOBID=${PBS_ARRAYID}
 
+if [ -f ${extra_file} ]; then
+  cp ${extra_file} ${temp_outdir}/.
+fi
+
 rtraw_filepath="${rtraw_filepath_base}${JOBID}.rtraw"
 dst_filepath="${dst_filepath_base}${JOBID}.dst"
 

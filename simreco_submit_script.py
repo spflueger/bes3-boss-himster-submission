@@ -104,6 +104,10 @@ parser.add_argument('--background', default=False,
                     help='Use this flag to direct the output into the '
                     ' inclusive mc data subdirectory!')
 
+parser.add_argument('--extra_file', type=str, default='',
+                    help='Path to a file, which will be copied on the node '
+                    'scratch directory to work with in the simulation.')
+
 args = parser.parse_args()
 
 Ecms = args.Ecms[0]
@@ -270,6 +274,9 @@ for dec_file in dec_file_list:
                                    Ecms)
     job.add_exported_user_variable('events_per_job',
                                    args.events_per_job[0])
+    if args.extra_file != '':
+        job.add_exported_user_variable('extra_file',
+                                       args.extra_file)
 
     # add the job to the joblist which we pass to the job manager later
     joblist.append(job)
