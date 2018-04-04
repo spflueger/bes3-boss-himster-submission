@@ -4,14 +4,14 @@ import os
 import argparse
 import json
 
-import himster
+import himster2
 from general import find_file
 
 
 # you do not have to touch this line unless you rename the script
 script_name = 'run_boss_sim.sh'
 # get full path of the executable
-script_fullpath = himster.get_exe_path(script_name)
+script_fullpath = himster2.get_exe_path(script_name)
 script_home_path = os.path.abspath(os.path.dirname(script_fullpath))
 
 
@@ -126,6 +126,18 @@ rec_job_option_filename = ''
 
 pdt_table_path = ''
 use_energy_subdirs = general_config['use_energy_and_dec_filename_data_subdirs']
+
+mc_dirname = simreco_config['mc_subdir']
+if args.background:
+    mc_dirname = simreco_config['inclmc_subdir']
+digi_root_dir = os.path.join(
+    datadir, mc_dirname + '/' + simreco_config['digi_root_subdir'])
+if use_energy_subdirs:
+    digi_root_dir = os.path.join(digi_root_dir, str(Ecms))
+
+if not os.path.exists(digi_root_dir):
+    os.makedirs(digi_root_dir)
+
 # scans directories for job option template files
 # and selects correct one
 if args.task_type == 1 or args.task_type == 3:
@@ -136,17 +148,6 @@ if args.task_type == 1 or args.task_type == 3:
     if simreco_config['use_own_pdt_table']:
         pdt_table_path = os.path.join(
             workarea, simreco_config['pdt_table_subpath'])
-
-    mc_dirname = simreco_config['mc_subdir']
-    if args.background:
-        mc_dirname = simreco_config['inclmc_subdir']
-    digi_root_dir = os.path.join(
-        datadir, mc_dirname + '/' + simreco_config['digi_root_subdir'])
-    if use_energy_subdirs:
-        digi_root_dir = os.path.join(digi_root_dir, str(Ecms))
-
-    if not os.path.exists(digi_root_dir):
-        os.makedirs(digi_root_dir)
 
     patterns = ['sim']
     if args.gen_job_option_filename_pattern != '':
@@ -161,9 +162,6 @@ if args.task_type == 2 or args.task_type == 3:
         rec_job_option_dir = os.path.join(
             workarea, simreco_config['job_opt_template_subdir'])
 
-    mc_dirname = simreco_config['mc_subdir']
-    if args.background:
-        mc_dirname = simreco_config['inclmc_subdir']
     dst_output_dir = os.path.join(
         datadir, mc_dirname + '/' + simreco_config['dst_output_subdir'])
     if use_energy_subdirs:
@@ -191,8 +189,8 @@ joblist = []
 
 # resource request of the job
 job_res_config = simreco_config['job_resource_request']
-job_walltime_in_minutes = 60 * int(job_res_config['walltime_in_hours'])
-resource_request = himster.JobResourceRequest(job_walltime_in_minutes)
+job_walltime_in_minutes = int(60 * job_res_config['walltime_in_hours'])
+resource_request = himster2.JobResourceRequest(job_walltime_in_minutes)
 resource_request.number_of_nodes = int(job_res_config['number_of_nodes'])
 resource_request.processors_per_node = int(
     job_res_config['processors_per_node'])
@@ -235,18 +233,19 @@ for dec_file in dec_file_list:
     job_name = simreco_config['job_name'] + base
     log_file_url = os.path.join(
         datadir, general_config['logfile_subdir'])
+    logfile_suffix = os.path.splitext(simreco_config['log_filename'])
     if use_energy_subdirs:
         log_file_url += '/' + str(Ecms) + '/' + base + \
-            '/' + simreco_config['log_filename']
+            '/' + logfile_suffix[0] + '-%a' + logfile_suffix[1]
     else:
         log_file_url += '/' + base + '_' + \
-            str(Ecms) + '_' + simreco_config['log_filename']
+            str(Ecms) + '_' + logfile_suffix[0] + '-%a' + logfile_suffix[1]
 
     log_file_dirname = os.path.dirname(log_file_url)
     if not os.path.exists(log_file_dirname):
         os.makedirs(log_file_dirname)
-    job = himster.Job(resource_request, script_fullpath,
-                      job_name, log_file_url)
+    job = himster2.Job(resource_request, script_fullpath,
+                       job_name, log_file_url)
 
     job.set_job_array_size(low_index_used, high_index_used)
 
@@ -285,8 +284,8 @@ for dec_file in dec_file_list:
 # (this can be used to moderate the load on himster)
 himster_overload_waittime_in_seconds = 3600
 concurrent_job_threshold = 1000
-job_manager = himster.HimsterJobManager(concurrent_job_threshold,
-                                        himster_overload_waittime_in_seconds)
+job_manager = himster2.HimsterJobManager(concurrent_job_threshold,
+                                         himster_overload_waittime_in_seconds)
 
 # now pass the joblist to the manager and let him do this thing
 job_manager.submit_jobs_to_himster(joblist)

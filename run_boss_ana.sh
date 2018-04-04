@@ -1,7 +1,7 @@
 #!/bin/sh
 
-tmp_outdir=`mktemp -d --tmpdir=/local/scratch`
-JOBID=${PBS_ARRAYID}
+tmp_outdir=`mktemp -d --tmpdir=/localscratch/${SLURM_JOB_ID}/`
+JOBID=${SLURM_ARRAY_TASK_ID}
 
 root_filename="${tmp_outdir}/${root_filename_base}${JOBID}.root"
 
@@ -14,9 +14,9 @@ template=`cat ${ana_job_option_template_path}`
 cat << EOT > $jobopt
 $template
 EventCnvSvc.digiRootInputFile = {${input_data_files}
-                                }
+                                };
 NTupleSvc.Output = {
-"FILE88 DATAFILE='${root_filename}' OPT='NEW' TYP='ROOT'"}
+"FILE88 DATAFILE='${root_filename}' OPT='NEW' TYP='ROOT'"};
 EOT
 
 echo "using job options file: $jobopt"

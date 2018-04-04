@@ -3,10 +3,14 @@
 is_himster=1
 
 # first create job option files
-temp_outdir=`mktemp -d --tmpdir=/local/scratch`
-JOBID=${PBS_ARRAYID}
+if [[ "${is_himster}" -eq 1 ]]; then
+    temp_outdir=`mktemp -d --tmpdir=/localscratch/${SLURM_JOB_ID}/`
+    JOBID=${SLURM_ARRAY_TASK_ID}
+else
+    echo "this seems to be no valid cluster environment"
+fi
 
-if [ -f ${extra_file} ]; then
+if [[ "${extra_file}" != "" ]] && [[ -f ${extra_file} ]]; then
   cp ${extra_file} ${temp_outdir}/.
 fi
 
@@ -39,7 +43,7 @@ EOT
     jobopt="${temp_outdir}/${sim_job_option_filename}"
     echo "using job options file: $jobopt"
     cat $jobopt
-    time boss.exe $jobopt
+    time ${application_path} $jobopt
 fi
 
 # check if we run also reconstruction
@@ -71,9 +75,9 @@ EOT
     echo "using job options file: $jobopt"
     cat $jobopt
     # additionally check if the required files from the simulation exist
-    if [ -f "$rtraw_filepath" ]; then
+    if [ -f "$rtraw_path_used" ]; then
         echo "rtraw file exists! Running boss.exe ..."
-        time boss.exe $jobopt
+        time ${application_path} $jobopt
     else
         echo "ERROR: could not find rtraw $input_filepath which is needed for the reconstruction!"
     fi

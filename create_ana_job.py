@@ -3,12 +3,12 @@ import os
 import argparse
 import json
 
-import himster
+import himster2
 from general import find_file, find_files, find_dir, create_file_chunks
 
 
 # get full path of the executable
-script_fullpath = himster.get_exe_path('create_ana_job.py')
+script_fullpath = himster2.get_exe_path('create_ana_job.py')
 script_dir = os.path.abspath(os.path.dirname(script_fullpath))
 
 json_file = open(script_dir + '/config.json')
