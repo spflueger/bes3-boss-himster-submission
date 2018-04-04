@@ -80,9 +80,9 @@ class JobResourceRequest:
             + ' -n 1 -c ' + str(self.processors_per_node) \
             + ' --mem-per-cpu=' + str(self.memory_in_mb) \
             + ' --time=' + self.walltime_string
-        if self.node_scratch_filesize_in_mb > 0:
-            resource_request += ' --tmp=' + \
-                str(self.node_scratch_filesize_in_mb)
+        #if self.node_scratch_filesize_in_mb > 0:
+        #    resource_request += ' --tmp=' + \
+        #        str(self.node_scratch_filesize_in_mb)
         return resource_request
 
 

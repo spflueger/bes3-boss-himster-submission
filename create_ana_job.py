@@ -54,11 +54,12 @@ def create_analysis_job_config(ecms, task_type, algorithm, job_opt_dir,
         ana_job_option_patterns = [job_opt_pattern]
     ana_job_config['ana_job_option_template_path'] = find_file(
         ana_job_option_dir, ana_job_option_patterns, job_option_file_ext)
-    base = os.path.splitext(os.path.split(
+    ana_job_option_base = os.path.splitext(os.path.split(
         ana_job_config['ana_job_option_template_path'])[1])[0]
-    base = base.replace('ana', '')
-    base = base.replace(task_pattern, '')
-    base = base.rstrip('-').rstrip('_').lstrip('-').lstrip('_')
+    ana_job_option_base = ana_job_option_base.replace('ana', '')
+    ana_job_option_base = ana_job_option_base.replace(task_pattern, '')
+    ana_job_option_base = ana_job_option_base.rstrip(
+        '-').rstrip('_').lstrip('-').lstrip('_')
 
     # Search for dst files in the our data dir
     if dst_file_subdir == '':
@@ -84,12 +85,19 @@ def create_analysis_job_config(ecms, task_type, algorithm, job_opt_dir,
         root_file_dir, dst_type_subdir + '/'
         + analysis_config['root_output_subdir'])
     if use_energy_subdirs:
-        root_file_dir += '/' + str(Ecms) + '/' + base
+        subdir = str(Ecms) + '/' + ana_job_option_base + \
+            '/' + dst_decsubdir_name
+        root_file_subdir_order = analysis_config['root_output_dir_subdir_order']
+        if root_file_subdir_order == 'decayname/algorithm':
+            subdir = str(Ecms) + '/' + dst_decsubdir_name + \
+                '/' + ana_job_option_base
+        root_file_dir = os.path.join(root_file_dir, subdir)
+
     if not os.path.exists(root_file_dir):
         os.makedirs(root_file_dir)
 
     ana_job_config['output_dir'] = root_file_dir
-    root_filename_base = base + '-'
+    root_filename_base = ana_job_option_base + '-' + dst_decsubdir_name + '-'
     if use_energy_subdirs:
         root_filename_base = 'ana-'
     ana_job_config['root_filename_base'] = root_filename_base
@@ -115,9 +123,9 @@ def create_analysis_job_config(ecms, task_type, algorithm, job_opt_dir,
             datadir, general_config['logfile_subdir'])
     if use_energy_subdirs:
         log_file_url += '/' + str(Ecms) + '/' + dst_decsubdir_name + \
-            '/' + base + '/' + analysis_config['log_filename']
+            '/' + ana_job_option_base + '/' + analysis_config['log_filename']
     else:
-        log_file_url += '/' + base + '_' + \
+        log_file_url += '/' + ana_job_option_base + '_' + \
             str(Ecms) + '_' + analysis_config['log_filename']
     ana_job_config['log_file_url'] = log_file_url
 
@@ -137,7 +145,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument('Ecms', metavar='Ecms', type=int, nargs=1)
 parser.add_argument('dst_dirname_pattern', type=str, nargs=1)
 parser.add_argument('--files_per_job', metavar='files_per_job',
-                    type=int, default=25)
+                    type=int, default=analysis_config['dst_files_per_job'])
 parser.add_argument('--task_type',
                     type=int,
                     nargs='+',
@@ -204,5 +212,5 @@ for i in task_list:
 
 
 for ana_job_config_path in analysis_job_config_paths:
-    os.system(os.path.join(script_dir, 'ana_submit_script.py') +
+    os.system('python3 ' + os.path.join(script_dir, 'ana_submit_script.py') +
               " " + ana_job_config_path)
