@@ -116,7 +116,7 @@ class Job:
                                self.job_array_index_high + 1,
                                max_jobarray_size):
             bashcommand = batch_command + ' -A m2_him_exp -p himster2_exp' + \
-                ' --constraint=\"skylake\"'
+                ' --constraint=\"skylake,mhz-2101\"'
             if self.job_array_index_high > self.job_array_index_low:
                 bashcommand += ' --array=' + str(job_index) + '-' \
                     + str(min(job_index + max_jobarray_size - 1,
