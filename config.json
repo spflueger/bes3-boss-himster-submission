@@ -18,8 +18,6 @@
         "dst_files_per_job": 5,
         "job_resource_request": {
             "walltime_in_hours": 2,
-            "number_of_nodes": 1,
-            "processors_per_node": 1,
             "memory_in_mb": 2000,
             "virtual_memory_in_mb": 3000,
             "node_scratch_filesize_in_mb": 2000
@@ -42,8 +40,6 @@
         "log_filename": "boss_sim.log",
         "job_resource_request": {
             "walltime_in_hours": 8,
-            "number_of_nodes": 1,
-            "processors_per_node": 1,
             "memory_in_mb": 2000,
             "virtual_memory_in_mb": 3000,
             "node_scratch_filesize_in_mb": 2000

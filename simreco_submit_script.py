@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 import os
 import argparse
@@ -110,6 +110,11 @@ parser.add_argument('--extra_file', type=str, default='',
 
 args = parser.parse_args()
 
+# check if extra file exists
+if args.extra_file != '':
+    if os.path.isfile(args.extra_file) is not True:
+        raise FileNotFoundError("Requested extra file not found.")
+
 Ecms = args.Ecms[0]
 
 sim_job_option_dir = args.sim_job_option_dir
@@ -191,9 +196,8 @@ joblist = []
 job_res_config = simreco_config['job_resource_request']
 job_walltime_in_minutes = int(60 * job_res_config['walltime_in_hours'])
 resource_request = himster2.JobResourceRequest(job_walltime_in_minutes)
-resource_request.number_of_nodes = int(job_res_config['number_of_nodes'])
-resource_request.processors_per_node = int(
-    job_res_config['processors_per_node'])
+resource_request.number_of_nodes = 1
+resource_request.processors_per_node = 1
 resource_request.memory_in_mb = int(job_res_config['memory_in_mb'])
 resource_request.virtual_memory_in_mb = int(
     job_res_config['virtual_memory_in_mb'])
