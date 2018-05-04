@@ -10,7 +10,10 @@ if [[ "${is_himster}" -eq 1 ]]; then
     JOBID=${SLURM_ARRAY_TASK_ID}
 else
     echo "this seems to be no valid cluster environment"
+    exit 1
 fi
+
+cd ${temp_outdir}
 
 if [[ "${extra_file}" != "" ]] && [[ -f ${extra_file} ]]; then
   cp ${extra_file} ${temp_outdir}/.
