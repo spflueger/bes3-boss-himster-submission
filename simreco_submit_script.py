@@ -244,41 +244,45 @@ for dec_file in dec_file_list:
     log_file_dirname = os.path.dirname(log_file_url)
     if not os.path.exists(log_file_dirname):
         os.makedirs(log_file_dirname)
-    job = himster2.Job(resource_request, script_fullpath,
-                       job_name, log_file_url)
 
-    job.set_job_array_size(low_index_used, high_index_used)
+    # TODO: when bug in mogon2 slurm is fixed use job arrays again using:
+    # job.set_job_array_size(low_index_used, high_index_used)
+    # For now we just submit jobs seperately
 
-    job.add_exported_user_variable('script_home_path',
-                                   script_home_path)
-    job.add_exported_user_variable('application_path',
-                                   application_path)
-    if args.task_type == 1 or args.task_type == 3:
-        job.add_exported_user_variable('sim_job_option_template_path',
-                                       os.path.join(sim_job_option_dir,
-                                                    sim_job_option_filename))
-        job.add_exported_user_variable('dec_file_path', dec_file_path)
-        job.add_exported_user_variable('pdt_table_path', pdt_table_path)
-    job.add_exported_user_variable('rtraw_filepath_base',
-                                   rtraw_filepath_base)
-    if args.task_type == 2 or args.task_type == 3:
-        job.add_exported_user_variable('rec_job_option_template_path',
-                                       os.path.join(rec_job_option_dir,
-                                                    rec_job_option_filename))
-        job.add_exported_user_variable('dst_filepath_base',
-                                       dst_filepath_base)
-    job.add_exported_user_variable('task_type',
-                                   args.task_type)
-    job.add_exported_user_variable('Ecms',
-                                   Ecms)
-    job.add_exported_user_variable('events_per_job',
-                                   args.events_per_job[0])
-    if args.extra_file != '':
-        job.add_exported_user_variable('extra_file',
-                                       args.extra_file)
+    for job_index in range(low_index_used, high_index_used + 1):
+        job = himster2.Job(resource_request, script_fullpath,
+                           job_name, log_file_url.replace('%a', str(job_index)))
+        job.set_job_array_size(job_index, job_index)
+        job.add_exported_user_variable('script_home_path',
+                                       script_home_path)
+        job.add_exported_user_variable('application_path',
+                                       application_path)
+        if args.task_type == 1 or args.task_type == 3:
+            job.add_exported_user_variable('sim_job_option_template_path',
+                                           os.path.join(sim_job_option_dir,
+                                                        sim_job_option_filename))
+            job.add_exported_user_variable('dec_file_path', dec_file_path)
+            job.add_exported_user_variable('pdt_table_path', pdt_table_path)
+        job.add_exported_user_variable('rtraw_filepath_base',
+                                       rtraw_filepath_base)
+        if args.task_type == 2 or args.task_type == 3:
+            job.add_exported_user_variable('rec_job_option_template_path',
+                                           os.path.join(rec_job_option_dir,
+                                                        rec_job_option_filename))
+            job.add_exported_user_variable('dst_filepath_base',
+                                           dst_filepath_base)
+        job.add_exported_user_variable('task_type',
+                                       args.task_type)
+        job.add_exported_user_variable('Ecms',
+                                       Ecms)
+        job.add_exported_user_variable('events_per_job',
+                                       args.events_per_job[0])
+        if args.extra_file != '':
+            job.add_exported_user_variable('extra_file',
+                                           args.extra_file)
 
-    # add the job to the joblist which we pass to the job manager later
-    joblist.append(job)
+        # add the job to the joblist which we pass to the job manager later
+        joblist.append(job)
 
 # job threshold of and waittime if threshold is reached
 # (this can be used to moderate the load on himster)

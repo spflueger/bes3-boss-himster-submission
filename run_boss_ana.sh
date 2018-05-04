@@ -1,5 +1,7 @@
 #!/bin/sh
 
+sleep 60s
+
 tmp_outdir=`mktemp -d --tmpdir=/localscratch/${SLURM_JOB_ID}/`
 JOBID=${SLURM_ARRAY_TASK_ID}
 

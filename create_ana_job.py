@@ -121,12 +121,14 @@ def create_analysis_job_config(ecms, task_type, algorithm, job_opt_dir,
     if general_config['use_separate_log_dir']:
         log_file_url = os.path.join(
             datadir, general_config['logfile_subdir'])
+    logfile_suffix = os.path.splitext(analysis_config['log_filename'])
     if use_energy_subdirs:
         log_file_url += '/' + str(Ecms) + '/' + dst_decsubdir_name + \
-            '/' + ana_job_option_base + '/' + analysis_config['log_filename']
+            '/' + ana_job_option_base + '/' + \
+            logfile_suffix[0] + '-%a' + logfile_suffix[1]
     else:
         log_file_url += '/' + ana_job_option_base + '_' + \
-            str(Ecms) + '_' + analysis_config['log_filename']
+            str(Ecms) + '_' + logfile_suffix[0] + '-%a' + logfile_suffix[1]
     ana_job_config['log_file_url'] = log_file_url
 
     ana_job_config_path = os.path.join(root_file_dir, 'ana_job_config.json')

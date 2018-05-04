@@ -63,29 +63,35 @@ job_name = analysis_config['job_name']
 log_file_dir = os.path.dirname(job_config_data['log_file_url'])
 if not os.path.exists(log_file_dir):
     os.makedirs(log_file_dir)
-job = himster2.Job(resource_request, script_fullpath,
-                   job_name, job_config_data['log_file_url'])
 
 # TODO: at this point we have to determine which jobs to send out
 low_index_used = job_config_data['job_array_start_index']
 high_index_used = job_config_data['job_array_last_index']
-print("using job array size of [" +
-      str(low_index_used) + " - " + str(high_index_used) + "]")
-job.set_job_array_size(low_index_used, high_index_used)
+# print("using job array size of [" +
+#      str(low_index_used) + " - " + str(high_index_used) + "]")
+#job.set_job_array_size(low_index_used, high_index_used)
 
-job.add_exported_user_variable('application_path',
-                               job_config_data['boss_exe_path'])
-job.add_exported_user_variable('dst_chunk_file_path',
-                               job_config_data['dst_chunk_file_path'])
-job.add_exported_user_variable('ana_job_option_template_path',
-                               job_config_data['ana_job_option_template_path'])
-job.add_exported_user_variable('output_dir',
-                               job_config_data['output_dir'])
-job.add_exported_user_variable('root_filename_base',
-                               job_config_data['root_filename_base'])
+for job_index in range(low_index_used, high_index_used + 1):
+    job = himster2.Job(resource_request, script_fullpath,
+                       job_name, job_config_data['log_file_url'].replace(
+                           '%a', str(job_index)))
 
-# add the job to the joblist which we pass to the job manager later
-joblist.append(job)
+    job.set_job_array_size(job_index, job_index)
+
+    job.add_exported_user_variable('application_path',
+                                   job_config_data['boss_exe_path'])
+    job.add_exported_user_variable('dst_chunk_file_path',
+                                   job_config_data['dst_chunk_file_path'])
+    job.add_exported_user_variable('ana_job_option_template_path',
+                                   job_config_data[
+                                       'ana_job_option_template_path'])
+    job.add_exported_user_variable('output_dir',
+                                   job_config_data['output_dir'])
+    job.add_exported_user_variable('root_filename_base',
+                                   job_config_data['root_filename_base'])
+
+    # add the job to the joblist which we pass to the job manager later
+    joblist.append(job)
 
 # job threshold of and waittime if threshold is reached
 # (this can be used to moderate the load on himster)

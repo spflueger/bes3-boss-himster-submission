@@ -1,5 +1,7 @@
 #!/bin/sh
 
+sleep 60s
+
 is_himster=1
 
 # first create job option files
