@@ -3,6 +3,9 @@
 sleep 60s
 
 is_himster=1
+if [[ -z "$SLURM_JOB_ID" ]]; then
+    is_himster=0
+fi
 
 # first create job option files
 if [[ "${is_himster}" -eq 1 ]]; then
@@ -56,7 +59,7 @@ if [[ "$task_type" -eq 2 || "$task_type" -eq 3 ]]; then
     RndTrg=""
     # Himster uses different queue name and different dir for Random Trigger Data
     if [ ${is_himster} ]; then
-        RndTrg="MixerAlg.ReplaceDataPath = \"/data/group/bes3/bes3data/offline/data/randomtrg/\";"
+        RndTrg="MixerAlg.ReplaceDataPath = \"/lustre/miifs05/scratch/bes3/data/randomtrg\";"
     fi
 
     rec_job_option_filename="rec_$Ecms-$JOBID.txt"
