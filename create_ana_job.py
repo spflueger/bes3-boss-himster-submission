@@ -110,10 +110,10 @@ def create_analysis_job_config(ecms, task_type, algorithm, job_opt_dir,
         index = 0
         for chunk in dst_file_chunks:
             index = index + 1
-            string = str(index) + ': {' + chunk[0]
+            string = str(index) + ': {"' + chunk[0]
             for dstfile in chunk[1:]:
-                string = string + ', ' + dstfile
-            string = string + '}\n'
+                string += '", "' + dstfile
+            string += '"}\n'
             outfile.write(string)
         outfile.close()
     ana_job_config['dst_chunk_file_path'] = dst_chunk_file_path
