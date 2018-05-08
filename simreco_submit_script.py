@@ -26,7 +26,8 @@ workarea = os.environ[general_config['boss_workarea_envname']]
 
 
 parser = argparse.ArgumentParser(
-    description='Script for submission of Boss simuation and reconstruction jobs',
+    description='Script for submission of Boss simuation and reconstruction'
+    ' jobs',
     formatter_class=argparse.RawTextHelpFormatter)
 
 parser.add_argument('Ecms', type=int, nargs=1,
@@ -103,6 +104,11 @@ parser.add_argument('--background', default=False,
                     action='store_true',
                     help='Use this flag to direct the output into the '
                     ' inclusive mc data subdirectory!')
+
+parser.add_argument('--random_seed', type=int, default=1234,
+                    help='Global initial random seed. The random seed for each'
+                    ' job is calculated as the sum of\nthe global initial'
+                    ' random seed and the array id.')
 
 parser.add_argument('--extra_file', type=str, default='',
                     help='Path to a file, which will be copied on the node '
@@ -254,25 +260,25 @@ for dec_file in dec_file_list:
     # For now we just submit jobs seperately
 
     for job_index in range(low_index_used, high_index_used + 1):
-        job = himster2.Job(resource_request, script_fullpath,
-                           job_name, log_file_url.replace('%a', str(job_index)))
+        job = himster2.Job(resource_request, script_fullpath, job_name,
+                           log_file_url.replace('%a', str(job_index)))
         job.set_job_array_size(job_index, job_index)
         job.add_exported_user_variable('script_home_path',
                                        script_home_path)
         job.add_exported_user_variable('application_path',
                                        application_path)
         if args.task_type == 1 or args.task_type == 3:
-            job.add_exported_user_variable('sim_job_option_template_path',
-                                           os.path.join(sim_job_option_dir,
-                                                        sim_job_option_filename))
+            job.add_exported_user_variable(
+                'sim_job_option_template_path',
+                os.path.join(sim_job_option_dir, sim_job_option_filename))
             job.add_exported_user_variable('dec_file_path', dec_file_path)
             job.add_exported_user_variable('pdt_table_path', pdt_table_path)
         job.add_exported_user_variable('rtraw_filepath_base',
                                        rtraw_filepath_base)
         if args.task_type == 2 or args.task_type == 3:
-            job.add_exported_user_variable('rec_job_option_template_path',
-                                           os.path.join(rec_job_option_dir,
-                                                        rec_job_option_filename))
+            job.add_exported_user_variable(
+                'rec_job_option_template_path',
+                os.path.join(rec_job_option_dir, rec_job_option_filename))
             job.add_exported_user_variable('dst_filepath_base',
                                            dst_filepath_base)
         job.add_exported_user_variable('task_type',
@@ -281,6 +287,8 @@ for dec_file in dec_file_list:
                                        Ecms)
         job.add_exported_user_variable('events_per_job',
                                        args.events_per_job[0])
+        job.add_exported_user_variable('random_seed',
+                                       args.random_seed)
         if args.extra_file != '':
             job.add_exported_user_variable('extra_file',
                                            args.extra_file)

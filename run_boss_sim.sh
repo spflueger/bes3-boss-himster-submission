@@ -33,6 +33,9 @@ echo "using boss: ${application_path}"
 
 # check if we run simulation
 if [[ "$task_type" -eq 1 || "$task_type" -eq 3 ]]; then
+    # random seed calculation
+    sim_random_seed=$(($random_seed+$SLURM_ARRAY_TASK_ID))
+
     # Create the simulation card
     sim_job_option_filename="sim_$Ecms-$JOBID.txt"
     outfilename="${temp_outdir}/${sim_job_option_filename}"
@@ -43,7 +46,7 @@ if [[ -f ${pdt_table_path} ]]; then
 fi
 cat << EOT >> $outfilename
 EvtDecay.userDecayTableName = "$dec_file_path";
-BesRndmGenSvc.RndmSeed = $JOBID;
+BesRndmGenSvc.RndmSeed = $sim_random_seed;
 RootCnvSvc.digiRootOutputFile = "$tmp_rtraw_filepath";
 ApplicationMgr.EvtMax = $events_per_job;
 EOT
@@ -56,6 +59,9 @@ fi
 
 # check if we run also reconstruction
 if [[ "$task_type" -eq 2 || "$task_type" -eq 3 ]]; then
+    # random seed calculation
+    rec_random_seed=$(($random_seed+$SLURM_ARRAY_TASK_ID))
+
     RndTrg=""
     # Himster uses different queue name and different dir for Random Trigger Data
     if [ ${is_himster} ]; then
@@ -73,7 +79,7 @@ if [[ "$task_type" -eq 2 || "$task_type" -eq 3 ]]; then
 cat << EOT > $outfilename
 #include "$rec_job_option_template_path"
 $RndTrg
-BesRndmGenSvc.RndmSeed = $JOBID;
+BesRndmGenSvc.RndmSeed = $rec_random_seed;
 EventCnvSvc.digiRootInputFile = {"$rtraw_path_used"};
 EventCnvSvc.digiRootOutputFile = "$tmp_dst_filepath";
 ApplicationMgr.EvtMax = $events_per_job;
