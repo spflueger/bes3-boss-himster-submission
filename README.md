@@ -1,3 +1,5 @@
+[![Test Status](https://travis-ci.com/spflueger/bes3-boss-himster-submission.svg?branch=master)](https://travis-ci.com/spflueger/bes3-boss-himster-submission)
+
 # bes3-boss-himster-submission
 Submission scripts for the boss software for the HIMster2.
 It avoids making any unneccesary intermediate job option and script files! It also offers some convenient control features.
