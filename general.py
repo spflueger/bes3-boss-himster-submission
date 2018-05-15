@@ -67,7 +67,8 @@ def find_file(dir_path, filename_patterns, file_ext):
     return job_opt_files[return_index]
 
 
-def find_files(dir_path, filename_patterns, file_ext):
+def find_files(dir_path, filename_patterns, file_ext='',
+               forbid_no_results=True):
     files_all = glob(dir_path + '/*' + file_ext)
     files = []
     # filter for patterns
@@ -81,7 +82,7 @@ def find_files(dir_path, filename_patterns, file_ext):
         if not skip:
             files.append(file)
 
-    if len(files) == 0:
+    if len(files) == 0 and forbid_no_results:
         raise FileNotFoundError(
             'Did not find any files in the directory, that'
             ' match your requested pattern.\n'
@@ -129,6 +130,26 @@ def find_dir(dir_path, subdir_name_patterns):
                 return_index = -1
 
     return dirs[return_index]
+
+
+def get_missing_job_indices(directory, filename_patterns,
+                            low_job_index, high_job_index, min_file_size):
+    all_files = find_files(directory, filename_patterns, '', False)
+    indices_to_resimulate = list(range(low_job_index, high_job_index + 1))
+    for file_path in all_files:
+        if path.getsize(file_path) / 1000 > min_file_size:
+            filename = path.splitext(path.split(file_path)[1])[0]
+            result = search("^.*-(\d*)$", filename)
+            if not result:
+                raise ValueError("Found file " + filename + " does not have"
+                                 " job index at the end.")
+            else:
+                file_index = int(result.group(1))
+                if (file_index <= high_job_index
+                        and file_index >= low_job_index):
+                    del indices_to_resimulate[
+                        indices_to_resimulate.index(file_index)]
+    return indices_to_resimulate
 
 
 def create_file_chunks(file_list, chunk_size):

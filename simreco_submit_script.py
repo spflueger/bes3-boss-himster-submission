@@ -5,7 +5,7 @@ import argparse
 import json
 
 import himster2
-from general import find_file
+from general import find_file, get_missing_job_indices
 
 
 # you do not have to touch this line unless you rename the script
@@ -113,6 +113,11 @@ parser.add_argument('--random_seed', type=int, default=1234,
 parser.add_argument('--extra_file', type=str, default='',
                     help='Path to a file, which will be copied on the node '
                     'scratch directory to work with in the simulation.')
+
+parser.add_argument('--force', default=False,
+                    action='store_true',
+                    help='Forces the simulation and/or reconstruction,'
+                    ' even if the output files already exist')
 
 args = parser.parse_args()
 
@@ -237,6 +242,39 @@ for dec_file in dec_file_list:
     if not os.path.exists(dst_dir):
         os.makedirs(dst_dir)
 
+    job_range = {}
+    # remove array jobs for which the output files are already existent
+    # and have a file size above the minimum
+    if not args.force:
+        num_events = args.events_per_job[0]
+        if args.task_type == 1 or args.task_type == 3:
+            sim_missing = get_missing_job_indices(
+                rtraw_dir, rtraw_filename_base,
+                low_index_used, high_index_used,
+                num_events * simreco_config['sim_min_filesize_per_event_in_kb'])
+        if args.task_type == 2 or args.task_type == 3:
+            reco_missing = get_missing_job_indices(
+                dst_dir, dst_filename_base, low_index_used, high_index_used,
+                num_events * simreco_config['reco_min_filesize_per_event_in_kb'])
+
+        missing_tasks = {}
+        for x in sim_missing:
+            missing_tasks[x] = 1
+        for x in reco_missing:
+            if x in missing_tasks:
+                missing_tasks[x] = 3
+            else:
+                missing_tasks[x] = 2
+
+        for index, task_type in missing_tasks.items():
+            if task_type not in job_range:
+                job_range[task_type] = []
+            job_range[task_type].append(index)
+
+    else:
+        job_range = {args.task_type: list(range(
+            low_index_used, high_index_used + 1))}
+
     # create a himster job
     # set variables from config file
     application_path = simreco_config['application_path']
@@ -259,15 +297,15 @@ for dec_file in dec_file_list:
     # job.set_job_array_size(low_index_used, high_index_used)
     # For now we just submit jobs seperately
 
-    for job_index in range(low_index_used, high_index_used + 1):
+    for task_type, job_indices in job_range.items():
         job = himster2.Job(resource_request, script_fullpath, job_name,
-                           log_file_url.replace('%a', str(job_index)))
-        job.set_job_array_size(job_index, job_index)
+                           log_file_url)
+        job.set_job_array_indices(job_indices)
         job.add_exported_user_variable('script_home_path',
                                        script_home_path)
         job.add_exported_user_variable('application_path',
                                        application_path)
-        if args.task_type == 1 or args.task_type == 3:
+        if task_type == 1 or task_type == 3:
             job.add_exported_user_variable(
                 'sim_job_option_template_path',
                 os.path.join(sim_job_option_dir, sim_job_option_filename))
@@ -275,14 +313,14 @@ for dec_file in dec_file_list:
             job.add_exported_user_variable('pdt_table_path', pdt_table_path)
         job.add_exported_user_variable('rtraw_filepath_base',
                                        rtraw_filepath_base)
-        if args.task_type == 2 or args.task_type == 3:
+        if task_type == 2 or task_type == 3:
             job.add_exported_user_variable(
                 'rec_job_option_template_path',
                 os.path.join(rec_job_option_dir, rec_job_option_filename))
             job.add_exported_user_variable('dst_filepath_base',
                                            dst_filepath_base)
         job.add_exported_user_variable('task_type',
-                                       args.task_type)
+                                       task_type)
         job.add_exported_user_variable('Ecms',
                                        Ecms)
         job.add_exported_user_variable('events_per_job',

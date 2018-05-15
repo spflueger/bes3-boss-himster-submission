@@ -80,7 +80,7 @@ class JobResourceRequest:
             + ' -n 1 -c ' + str(self.processors_per_node) \
             + ' --mem-per-cpu=' + str(self.memory_in_mb) \
             + ' --time=' + self.walltime_string
-        #if self.node_scratch_filesize_in_mb > 0:
+        # if self.node_scratch_filesize_in_mb > 0:
         #    resource_request += ' --tmp=' + \
         #        str(self.node_scratch_filesize_in_mb)
         return resource_request
@@ -96,31 +96,55 @@ class Job:
         self.application_url = str(application_url)
         self.jobname = str(jobname)
         self.logfile_url = str(logfile_url)
-        self.job_array_index_low = 1
-        self.job_array_index_high = 1
+        self.job_array_index_bundles = []
         self.exported_user_variables = {}
 
-    def set_job_array_size(self, job_array_index_low, job_array_index_high):
-        self.job_array_index_low = int(job_array_index_low)
-        self.job_array_index_high = int(job_array_index_high)
-        if self.job_array_index_low == self.job_array_index_high:
-            self.add_exported_user_variable(
-                'SLURM_ARRAY_TASK_ID', self.job_array_index_low)
+    def set_job_array_indices(self, array_indices):
+        self.job_array_index_bundles = [array_indices]
 
     def add_exported_user_variable(self, name, value):
         self.exported_user_variables[str(name)] = str(value)
 
+    def create_array_string(self, array_indices):
+        if len(array_indices) > 1:
+            indices_string = ''
+            temp_range_start = -1
+            previous_index = -1
+            array_indices.sort()
+            for index in array_indices:
+                if temp_range_start == -1:
+                    temp_range_start = index
+                elif index > previous_index + 1:
+                    if previous_index - temp_range_start > 1:
+                        indices_string += str(temp_range_start) + \
+                            '-' + str(previous_index) + ','
+                    else:
+                        if temp_range_start != previous_index:
+                            indices_string += str(temp_range_start) + ','
+                        indices_string += str(previous_index) + ','
+                    temp_range_start = index
+                previous_index = index
+            if temp_range_start < index:
+                indices_string += str(temp_range_start) + \
+                            '-' + str(array_indices[-1])
+            else:
+                indices_string += str(array_indices[-1])
+            return ' --array=' + indices_string
+        elif len(array_indices) == 1:
+            self.add_exported_user_variable(
+                'SLURM_ARRAY_TASK_ID', array_indices[0])
+            return ''
+        else:
+            raise ValueError("Number of jobs is zero!")
+
     def create_bash_commands(self, max_jobarray_size):
         bashcommand_list = []
-        for job_index in range(self.job_array_index_low,
-                               self.job_array_index_high + 1,
-                               max_jobarray_size):
+        for array_indices in self.job_array_index_bundles:
             bashcommand = batch_command + ' -A m2_him_exp -p himster2_exp' + \
                 ' --constraint=\"skylake,mhz-2101\"'
-            if self.job_array_index_high > self.job_array_index_low:
-                bashcommand += ' --array=' + str(job_index) + '-' \
-                    + str(min(job_index + max_jobarray_size - 1,
-                              self.job_array_index_high))
+
+            bashcommand += self.create_array_string(array_indices)
+
             bashcommand += ' --job-name=' + self.jobname + \
                 self.resource_request.get_submit_string() + ' --output=' \
                 + self.logfile_url
@@ -128,7 +152,9 @@ class Job:
             bashcommand += ' --export=ALL,'
             for name, value in self.exported_user_variables.items():
                 bashcommand += name + '="' + value + '",'
+
             bashcommand = bashcommand[:-1] + ' ' + self.application_url
+            #print(bashcommand)
             bashcommand_list.append(bashcommand)
         return bashcommand_list
 

@@ -4,3 +4,5 @@ workarea
 job_options_dir
 objectdb
 launch.json
+python_venv
+.pytest_cache
