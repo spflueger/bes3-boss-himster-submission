@@ -1,6 +1,6 @@
 #!/bin/sh
 
-sleep 60s
+sleep 30s
 
 is_himster=1
 if [[ -z "$SLURM_JOB_ID" ]]; then
@@ -9,24 +9,33 @@ fi
 
 # first create job option files
 if [[ "${is_himster}" -eq 1 ]]; then
-    temp_outdir=`mktemp -d --tmpdir=/localscratch/${SLURM_JOB_ID}/`
     JOBID=${SLURM_ARRAY_TASK_ID}
 else
     echo "this seems to be no valid cluster environment"
     exit 1
 fi
 
-cd ${temp_outdir}
+if [ -z ${dump_job_options+x} ]; then
+    temp_outdir=`mktemp -d --tmpdir=/localscratch/${SLURM_JOB_ID}/`
+    cd ${temp_outdir}
+else
+    temp_outdir=$(dirname "${sim_job_option_template_path}")
+fi
 
 if [[ "${extra_file}" != "" ]] && [[ -f ${extra_file} ]]; then
-  cp ${extra_file} ${temp_outdir}/.
+    cp ${extra_file} ${temp_outdir}/.
 fi
 
 rtraw_filepath="${rtraw_filepath_base}${JOBID}.rtraw"
 dst_filepath="${dst_filepath_base}${JOBID}.dst"
 
-tmp_rtraw_filepath="${temp_outdir}/digi-${JOBID}.rtraw"
-tmp_dst_filepath="${temp_outdir}/reco-${JOBID}.dst"
+if [ -z ${dump_job_options+x} ]; then
+    tmp_rtraw_filepath="${temp_outdir}/digi-${JOBID}.rtraw"
+    tmp_dst_filepath="${temp_outdir}/reco-${JOBID}.dst"
+else
+    tmp_rtraw_filepath=${rtraw_filepath}
+    tmp_dst_filepath=${dst_filepath}
+fi
 
 echo "task type: $task_type"
 echo "using boss: ${application_path}"
@@ -54,7 +63,9 @@ EOT
     jobopt="${temp_outdir}/${sim_job_option_filename}"
     echo "using job options file: $jobopt"
     cat $jobopt
-    time ${application_path} $jobopt
+    if [ -z ${dump_job_options+x} ]; then
+        time ${application_path} $jobopt
+    fi
 fi
 
 # check if we run also reconstruction
@@ -88,20 +99,24 @@ EOT
     jobopt="${temp_outdir}/${rec_job_option_filename}"
     echo "using job options file: $jobopt"
     cat $jobopt
-    # additionally check if the required files from the simulation exist
-    if [ -f "$rtraw_path_used" ]; then
-        echo "rtraw file exists! Running boss.exe ..."
-        time ${application_path} $jobopt
-    else
-        echo "ERROR: could not find rtraw $input_filepath which is needed for the reconstruction!"
+    if [ -z ${dump_job_options+x} ]; then
+        # additionally check if the required files from the simulation exist
+        if [ -f "$rtraw_path_used" ]; then
+            echo "rtraw file exists! Running boss.exe ..."
+            time ${application_path} $jobopt
+        else
+            echo "ERROR: could not find rtraw $input_filepath which is needed for the reconstruction!"
+        fi
     fi
 fi
 
-if [[ "$task_type" -eq 1 || "$task_type" -eq 3 ]]; then
-    mv $tmp_rtraw_filepath $rtraw_filepath
-fi
-mv $tmp_dst_filepath $dst_filepath
+if [ -z ${dump_job_options+x} ]; then
+    if [[ "$task_type" -eq 1 || "$task_type" -eq 3 ]]; then
+        mv $tmp_rtraw_filepath $rtraw_filepath
+    fi
+    mv $tmp_dst_filepath $dst_filepath
 
-rm -rf $temp_outdir
+    rm -rf $temp_outdir
+fi
 
 exit 0

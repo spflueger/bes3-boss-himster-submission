@@ -114,10 +114,13 @@ parser.add_argument('--extra_file', type=str, default='',
                     help='Path to a file, which will be copied on the node '
                     'scratch directory to work with in the simulation.')
 
-parser.add_argument('--force', default=False,
-                    action='store_true',
+parser.add_argument('--force', default=False, action='store_true',
                     help='Forces the simulation and/or reconstruction,'
                     ' even if the output files already exist')
+
+parser.add_argument('--dump_job_options', default=False, action='store_true',
+                    help='Instead of performing the sim/reco, the Boss options'
+                    ' of the job with the lowest job array id are dumped.')
 
 args = parser.parse_args()
 
@@ -242,10 +245,12 @@ for dec_file in dec_file_list:
     if not os.path.exists(dst_dir):
         os.makedirs(dst_dir)
 
-    job_range = {}
+    job_array_range = {}
     # remove array jobs for which the output files are already existent
     # and have a file size above the minimum
-    if not args.force:
+    if args.dump_job_options:
+        job_array_range = {args.task_type: [low_index_used]}
+    elif not args.force:
         num_events = args.events_per_job[0]
         if args.task_type == 1 or args.task_type == 3:
             sim_missing = get_missing_job_indices(
@@ -267,12 +272,11 @@ for dec_file in dec_file_list:
                 missing_tasks[x] = 2
 
         for index, task_type in missing_tasks.items():
-            if task_type not in job_range:
-                job_range[task_type] = []
-            job_range[task_type].append(index)
-
+            if task_type not in job_array_range:
+                job_array_range[task_type] = []
+            job_array_range[task_type].append(index)
     else:
-        job_range = {args.task_type: list(range(
+        job_array_range = {args.task_type: list(range(
             low_index_used, high_index_used + 1))}
 
     # create a himster job
@@ -293,14 +297,17 @@ for dec_file in dec_file_list:
     if not os.path.exists(log_file_dirname):
         os.makedirs(log_file_dirname)
 
-    # TODO: when bug in mogon2 slurm is fixed use job arrays again using:
-    # job.set_job_array_size(low_index_used, high_index_used)
-    # For now we just submit jobs seperately
+    for task_type, array_indices in job_array_range.items():
+        if len(array_indices) == 0:
+            continue
 
-    for task_type, job_indices in job_range.items():
         job = himster2.Job(resource_request, script_fullpath, job_name,
                            log_file_url)
-        job.set_job_array_indices(job_indices)
+        array_indices.sort()
+        job.set_job_array_indices(array_indices)
+        if args.dump_job_options:
+            job.add_exported_user_variable('dump_job_options',
+                                           1)
         job.add_exported_user_variable('script_home_path',
                                        script_home_path)
         job.add_exported_user_variable('application_path',
