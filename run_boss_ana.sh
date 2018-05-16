@@ -1,11 +1,16 @@
 #!/bin/sh
 
-sleep 60s
+sleep 30s
 
-tmp_outdir=`mktemp -d --tmpdir=/localscratch/${SLURM_JOB_ID}/`
+if [ -z ${dump_job_options+x} ]; then
+    tmp_outdir=`mktemp -d --tmpdir=/localscratch/${SLURM_JOB_ID}/`
+else
+    tmp_outdir=$(dirname "${ana_job_option_template_path}")
+fi
+
 JOBID=${SLURM_ARRAY_TASK_ID}
 
-root_filename="${tmp_outdir}/${root_filename_base}${JOBID}.root"
+root_filename="${tmp_outdir}/${root_filename_base}-${JOBID}.root"
 
 # Create the reconstruction card
 ana_job_option_filename="ana_$JOBID.txt"
@@ -23,10 +28,12 @@ EOT
 
 echo "using job options file: $jobopt"
 cat $jobopt
-echo "using boss: ${application_path}"
-time ${application_path} $jobopt
+if [ -z ${dump_job_options+x} ]; then
+    echo "using boss: ${application_path}"
+    time ${application_path} $jobopt
 
-mv ${root_filename} ${output_dir}/.
-rm -rf ${tmp_outdir}
+    mv ${root_filename} ${output_dir}/.
+    rm -rf ${tmp_outdir}
+fi
 
 exit 0

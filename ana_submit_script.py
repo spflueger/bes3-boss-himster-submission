@@ -5,6 +5,7 @@ import json
 import argparse
 
 import himster2
+from general import get_missing_job_indices
 
 # you do not have to touch this line unless you rename the script
 script_name = 'run_boss_ana.sh'
@@ -32,6 +33,9 @@ parser.add_argument('--force', default=False,
                     action='store_true',
                     help='Rerun this job completely, even if files already'
                     ' exist. Warning: this will overwrite existing files!')
+parser.add_argument('--dump_job_options', default=False, action='store_true',
+                    help='Instead of performing the analysis, the Boss options'
+                    ' of the job with the lowest job array id are dumped.')
 
 args = parser.parse_args()
 
@@ -63,34 +67,47 @@ log_file_dir = os.path.dirname(job_config_data['log_file_url'])
 if not os.path.exists(log_file_dir):
     os.makedirs(log_file_dir)
 
-# TODO: at this point we have to determine which jobs to send out
 low_index_used = job_config_data['job_array_start_index']
 high_index_used = job_config_data['job_array_last_index']
-# print("using job array size of [" +
-#      str(low_index_used) + " - " + str(high_index_used) + "]")
-#job.set_job_array_size(low_index_used, high_index_used)
+output_dir = job_config_data['output_dir']
+root_filename_base = job_config_data['root_filename_base']
 
-for job_index in range(low_index_used, high_index_used + 1):
-    job = himster2.Job(resource_request, script_fullpath,
-                       job_name, job_config_data['log_file_url'].replace(
-                           '%a', str(job_index)))
+array_indices = []
+# remove array jobs for which the output files are already existent
+# and have a file size above the minimum
+if args.dump_job_options:
+    array_indices = [low_index_used]
+elif not args.force:
+    array_indices = get_missing_job_indices(
+        output_dir, root_filename_base, low_index_used, high_index_used,
+        analysis_config['ana_min_filesize_in_kb'])
+else:
+    array_indices = list(range(low_index_used, high_index_used + 1))
 
-    job.set_job_array_size(job_index, job_index)
 
-    job.add_exported_user_variable('application_path',
-                                   job_config_data['boss_exe_path'])
-    job.add_exported_user_variable('dst_chunk_file_path',
-                                   job_config_data['dst_chunk_file_path'])
-    job.add_exported_user_variable('ana_job_option_template_path',
-                                   job_config_data[
-                                       'ana_job_option_template_path'])
-    job.add_exported_user_variable('output_dir',
-                                   job_config_data['output_dir'])
-    job.add_exported_user_variable('root_filename_base',
-                                   job_config_data['root_filename_base'])
+job = himster2.Job(resource_request, script_fullpath,
+                   job_name, job_config_data['log_file_url'])
 
-    # add the job to the joblist which we pass to the job manager later
-    joblist.append(job)
+job.set_job_array_indices(array_indices)
+
+if args.dump_job_options:
+    job.add_exported_user_variable('dump_job_options',
+                                   1)
+
+job.add_exported_user_variable('application_path',
+                               job_config_data['boss_exe_path'])
+job.add_exported_user_variable('dst_chunk_file_path',
+                               job_config_data['dst_chunk_file_path'])
+job.add_exported_user_variable('ana_job_option_template_path',
+                               job_config_data[
+                                   'ana_job_option_template_path'])
+job.add_exported_user_variable('output_dir',
+                               output_dir)
+job.add_exported_user_variable('root_filename_base',
+                               root_filename_base)
+
+# add the job to the joblist which we pass to the job manager later
+joblist.append(job)
 
 # job threshold of and waittime if threshold is reached
 # (this can be used to moderate the load on himster)

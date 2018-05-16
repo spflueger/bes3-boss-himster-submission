@@ -21,7 +21,8 @@
             "memory_in_mb": 2000,
             "virtual_memory_in_mb": 3000,
             "node_scratch_filesize_in_mb": 2000
-        }
+        },
+        "ana_min_filesize_in_kb": 1000
     },
     "simreco": {
         "dec_file_subdir": "run/decfiles",

@@ -98,9 +98,9 @@ def create_analysis_job_config(ecms, task_type, algorithm, job_opt_dir,
         os.makedirs(root_file_dir)
 
     ana_job_config['output_dir'] = root_file_dir
-    root_filename_base = ana_job_option_base + '-' + dst_decsubdir_name + '-'
+    root_filename_base = ana_job_option_base + '-' + dst_decsubdir_name
     if use_energy_subdirs:
-        root_filename_base = 'ana-'
+        root_filename_base = 'ana'
     ana_job_config['root_filename_base'] = root_filename_base
 
     # write dst chunks file
@@ -178,6 +178,9 @@ parser.add_argument('--job_option_filename_pattern',
                     default='',
                     help='Specify a filename pattern of the job option'
                     ' template file.')
+parser.add_argument('--dump_job_options', default=False, action='store_true',
+                    help='Instead of performing the analysis, the Boss options'
+                    ' of the job with the lowest job array id are dumped.')
 
 args = parser.parse_args()
 
@@ -213,7 +216,10 @@ for i in task_list:
                                    )
     )
 
+dump_job_options_string = ''
+if args.dump_job_options:
+    dump_job_options_string = ' --dump_job_options'
 
 for ana_job_config_path in analysis_job_config_paths:
     os.system('python3 ' + os.path.join(script_dir, 'ana_submit_script.py') +
-              " " + ana_job_config_path)
+              dump_job_options_string + " " + ana_job_config_path)

@@ -30,13 +30,18 @@ directory is in the in the *$PATH* environment variable
 
 Thats it! Now just run the your version of submit scripts
 
+### File Naming Conventions
+Currently there are certain conditions on the job option template filenames, in order that the scripts work correctly.
+- the analysis job option template files, should contain "ana" and depending on which kind of data that is analysed "mc", "data" or "inclMc"
+- ...
+
 ### Usage
 Generally, use the *-h* or *--help* flags in the python script calls for more information.
 
 For simulations and reconstruction simply call the **simreco_submit_script.py** script with the corresponding arguments.
 
 For analysis use the **create_ana_job.py** script, when running a job for the first time. It will generate a job option file and automatically use this file in the analysis job submission.
-If you want to resubmit an analysis job, use the **ana_submit_script** with analysis job option files as arguments.
+If you want to resubmit an analysis job, use the **ana_submit_script.py** with analysis job option files as arguments.
 
 ### Updating
 When a new version of the submission tools are available, the following steps show how the update is performed easieast.
