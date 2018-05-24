@@ -1,6 +1,6 @@
 #!/bin/sh
 
-sleep 30s
+sleep 5s
 
 is_himster=1
 if [[ -z "$SLURM_JOB_ID" ]]; then

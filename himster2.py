@@ -78,7 +78,7 @@ class JobResourceRequest:
     def get_submit_string(self):
         resource_request = ' -N ' + str(self.number_of_nodes) \
             + ' -n 1 -c ' + str(self.processors_per_node) \
-            + ' --mem-per-cpu=' + str(self.memory_in_mb) \
+            + ' --mem-per-cpu=' + str(self.memory_in_mb) + 'mb' \
             + ' --time=' + self.walltime_string
         # if self.node_scratch_filesize_in_mb > 0:
         #    resource_request += ' --tmp=' + \
@@ -126,7 +126,7 @@ class Job:
                 previous_index = index
             if temp_range_start < index:
                 indices_string += str(temp_range_start) + \
-                            '-' + str(array_indices[-1])
+                    '-' + str(array_indices[-1])
             else:
                 indices_string += str(array_indices[-1])
             return ' --array=' + indices_string
@@ -137,7 +137,7 @@ class Job:
         else:
             raise ValueError("Number of jobs is zero!")
 
-    def create_bash_commands(self, max_jobarray_size):
+    def create_bash_commands(self):
         bashcommand_list = []
         for array_indices in self.job_array_index_bundles:
             bashcommand = batch_command + ' -A m2_him_exp -p himster2_exp' + \
@@ -154,20 +154,17 @@ class Job:
                 bashcommand += name + '="' + value + '",'
 
             bashcommand = bashcommand[:-1] + ' ' + self.application_url
-            #print(bashcommand)
+            # print(bashcommand)
             bashcommand_list.append(bashcommand)
         return bashcommand_list
 
 
 class HimsterJobManager:
     def __init__(self, himster_total_job_threshold=1600,
-                 resubmit_wait_time_in_seconds=1800,
-                 max_jobarray_size=100):
+                 resubmit_wait_time_in_seconds=1800):
         self.job_command_list = []
         # user total job threshold
         self.himster_total_job_threshold = himster_total_job_threshold
-        # max number of jobs within a job array on himster (atm 100)
-        self.max_jobarray_size = max_jobarray_size
         # sleep time when total job threshold is reached in seconds
         self.resubmit_wait_time_in_seconds = resubmit_wait_time_in_seconds
 
@@ -178,8 +175,8 @@ class HimsterJobManager:
             bashcommand = self.job_command_list.pop(0)
             if get_num_jobs_on_himster() < self.himster_total_job_threshold:
                 print("Nope, trying to submit job...")
-                returnvalue = subprocess.call(bashcommand.split())
-                if returnvalue > 0:
+                returncode = subprocess.call(bashcommand, shell=True)
+                if returncode > 0:
                     resubmit = True
                     if bashcommand in failed_submit_commands:
                         if time() < (failed_submit_commands[bashcommand]
@@ -199,8 +196,8 @@ class HimsterJobManager:
                         # put the command back into the list
                         self.job_command_list.insert(0, bashcommand)
                 else:
-                    # sleep 5 sec to make the queue changes active
-                    sleep(5)
+                    # sleep 3 sec to make the queue changes active
+                    sleep(3)
             else:
                 # put the command back into the list
                 self.job_command_list.insert(0, bashcommand)
@@ -217,8 +214,7 @@ class HimsterJobManager:
         if is_cluster_environment():
             print('This is a cluster environment. Adding jobs to queue list!')
             for job in job_list:
-                for bashcommand in job.create_bash_commands(
-                        self.max_jobarray_size):
+                for bashcommand in job.create_bash_commands():
                     self.job_command_list.append(bashcommand)
 
         else:

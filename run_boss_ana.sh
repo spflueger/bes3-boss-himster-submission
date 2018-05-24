@@ -1,6 +1,6 @@
 #!/bin/sh
 
-sleep 30s
+sleep 5s
 
 if [ -z ${dump_job_options+x} ]; then
     tmp_outdir=`mktemp -d --tmpdir=/localscratch/${SLURM_JOB_ID}/`
