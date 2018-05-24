@@ -76,7 +76,7 @@ if [[ "$task_type" -eq 2 || "$task_type" -eq 3 ]]; then
     RndTrg=""
     # Himster uses different queue name and different dir for Random Trigger Data
     if [ ${is_himster} ]; then
-        RndTrg="MixerAlg.ReplaceDataPath = \"/lustre/miifs05/scratch/bes3/data/randomtrg/\";"
+        RndTrg="MixerAlg.ReplaceDataPath = \"${himster2_randomtrg_path}\";"
     fi
 
     rec_job_option_filename="rec_$Ecms-$JOBID.txt"

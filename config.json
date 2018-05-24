@@ -38,6 +38,7 @@
         "dst_output_subdir": "dst",
         "job_name": "boss-sim",
         "application_path": "/path/to/your/boss.exe",
+        "himster2_randomtrg_path": "/lustre/miifs05/scratch/bes3/data/randomtrg/",
         "log_filename": "boss_sim.log",
         "job_resource_request": {
             "walltime_in_hours": 8,

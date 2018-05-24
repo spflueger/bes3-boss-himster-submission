@@ -252,6 +252,8 @@ for dec_file in dec_file_list:
         job_array_range = {args.task_type: [low_index_used]}
     elif not args.force:
         num_events = args.events_per_job[0]
+        sim_missing = []
+        reco_missing = []
         if args.task_type == 1 or args.task_type == 3:
             sim_missing = get_missing_job_indices(
                 rtraw_dir, rtraw_filename_base,
@@ -326,6 +328,9 @@ for dec_file in dec_file_list:
                 os.path.join(rec_job_option_dir, rec_job_option_filename))
             job.add_exported_user_variable('dst_filepath_base',
                                            dst_filepath_base)
+            job.add_exported_user_variable(
+                'himster2_randomtrg_path',
+                simreco_config['himster2_randomtrg_path'])
         job.add_exported_user_variable('task_type',
                                        task_type)
         job.add_exported_user_variable('Ecms',
