@@ -18,9 +18,7 @@
         "dst_files_per_job": 5,
         "job_resource_request": {
             "walltime_in_hours": 2,
-            "memory_in_mb": 2000,
-            "virtual_memory_in_mb": 3000,
-            "node_scratch_filesize_in_mb": 2000
+            "memory_in_mb": 2000
         },
         "ana_min_filesize_in_kb": 1000
     },
@@ -42,9 +40,7 @@
         "log_filename": "boss_sim.log",
         "job_resource_request": {
             "walltime_in_hours": 8,
-            "memory_in_mb": 2000,
-            "virtual_memory_in_mb": 3000,
-            "node_scratch_filesize_in_mb": 2000
+            "memory_in_mb": 2000
         },
         "sim_min_filesize_per_event_in_kb": 3,
         "reco_min_filesize_per_event_in_kb": 10

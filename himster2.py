@@ -76,9 +76,12 @@ class JobResourceRequest:
         return walltime_string
 
     def get_submit_string(self):
+        # hyperthreading on himster2 virtually increases cpu count by a
+        # factor of 2. we want to allocate only real cpus, hence the 
+        # factors of 2 in the code below
         resource_request = ' -N ' + str(self.number_of_nodes) \
-            + ' -n 1 -c ' + str(self.processors_per_node) \
-            + ' --mem-per-cpu=' + str(self.memory_in_mb) + 'mb' \
+            + ' -n 1 -c ' + str(2*self.processors_per_node) \
+            + ' --mem-per-cpu=' + str(int(self.memory_in_mb/2)) + 'mb' \
             + ' --time=' + self.walltime_string
         # if self.node_scratch_filesize_in_mb > 0:
         #    resource_request += ' --tmp=' + \

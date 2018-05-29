@@ -213,10 +213,6 @@ resource_request = himster2.JobResourceRequest(job_walltime_in_minutes)
 resource_request.number_of_nodes = 1
 resource_request.processors_per_node = 1
 resource_request.memory_in_mb = int(job_res_config['memory_in_mb'])
-resource_request.virtual_memory_in_mb = int(
-    job_res_config['virtual_memory_in_mb'])
-resource_request.node_scratch_filesize_in_mb = int(
-    job_res_config['node_scratch_filesize_in_mb'])
 
 
 for dec_file in dec_file_list:
