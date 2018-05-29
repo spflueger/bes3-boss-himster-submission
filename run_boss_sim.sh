@@ -65,6 +65,7 @@ EOT
     cat $jobopt
     if [ -z ${dump_job_options+x} ]; then
         time ${application_path} $jobopt
+        cp $tmp_rtraw_filepath $rtraw_filepath
     fi
 fi
 
@@ -104,6 +105,7 @@ EOT
         if [ -f "$rtraw_path_used" ]; then
             echo "rtraw file exists! Running boss.exe ..."
             time ${application_path} $jobopt
+            cp $tmp_dst_filepath $dst_filepath
         else
             echo "ERROR: could not find rtraw $input_filepath which is needed for the reconstruction!"
         fi
@@ -111,11 +113,6 @@ EOT
 fi
 
 if [ -z ${dump_job_options+x} ]; then
-    if [[ "$task_type" -eq 1 || "$task_type" -eq 3 ]]; then
-        mv $tmp_rtraw_filepath $rtraw_filepath
-    fi
-    mv $tmp_dst_filepath $dst_filepath
-
     rm -rf $temp_outdir
 fi
 
