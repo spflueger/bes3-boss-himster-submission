@@ -1,6 +1,27 @@
-from os import listdir, path
+from os import listdir, path, environ, pathsep, getcwd, access, X_OK
 from re import search
 from glob import glob
+
+
+def get_exe_path(exe_name):
+    exe_url = ''
+    found = False
+    for path_dir in environ["PATH"].split(pathsep):
+        path_dir = path_dir.strip('"')
+        exe_url = path.join(path_dir, exe_name)
+        if path.isfile(exe_url):
+            found = True
+            break
+    if not found:
+        exe_url = path.join(getcwd(), exe_name)
+        if not path.isfile(exe_url):
+            raise FileNotFoundError(
+                'Could not find executable ' + str(exe_name))
+    if not access(exe_url, X_OK):
+        raise PermissionError(
+            'Please give ' + str(exe_url) + ' execute permission!')
+
+    return exe_url
 
 
 def check_index_range_for_directory(dir_path, regex_pattern):
@@ -152,7 +173,14 @@ def get_missing_job_indices(directory, filename_patterns,
     return indices_to_resimulate
 
 
-def create_file_chunks(file_list, chunk_size):
+def create_file_chunks(file_list, chunk_size, redistribution_threshold):
+    if not isinstance(redistribution_threshold, float):
+        raise TypeError("The redistribution threshold should be of type float"
+                        " (Given: " + str(redistribution_threshold) + ")")
+    if redistribution_threshold < 0.0 or redistribution_threshold > 1.0:
+        raise ValueError("Warning: the redistribution threshold for the file"
+                         " bunching should be a number between 0 and 1!"
+                         " (Given: " + str(redistribution_threshold) + ")")
     file_chunks = []
     # now group files in bundles of chunk size
     for i in range(0, len(file_list), chunk_size):
@@ -160,7 +188,8 @@ def create_file_chunks(file_list, chunk_size):
 
     # if last job got below the total number of jobs
     # then redistribute
-    if len(file_chunks[-1]) < len(file_chunks):
+    if (len(file_chunks) > 1 and
+            len(file_chunks[-1]) < redistribution_threshold * chunk_size):
         last_chunk = file_chunks.pop()
         for i in last_chunk:
             file_chunks[last_chunk.index(i)].append(i)

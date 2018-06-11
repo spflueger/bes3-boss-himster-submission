@@ -5,11 +5,11 @@ import json
 import argparse
 
 import himster2
-from general import get_missing_job_indices
+from general import get_missing_job_indices, get_exe_path
 
 # you do not have to touch this line unless you rename the script
 script_name = 'run_boss_ana.sh'
-script_fullpath = himster2.get_exe_path(script_name)
+script_fullpath = get_exe_path(script_name)
 script_dir = os.path.abspath(os.path.dirname(script_fullpath))
 
 # get runtime configs

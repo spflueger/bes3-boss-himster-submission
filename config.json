@@ -16,6 +16,7 @@
         "default_algorithm": "",
         "log_filename": "boss_ana.log",
         "dst_files_per_job": 5,
+        "chunk_redistribution_threshold": 0.5,
         "job_resource_request": {
             "walltime_in_hours": 2,
             "memory_in_mb": 2000

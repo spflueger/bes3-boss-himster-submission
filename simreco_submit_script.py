@@ -5,13 +5,13 @@ import argparse
 import json
 
 import himster2
-from general import find_file, get_missing_job_indices
+from general import find_file, get_missing_job_indices, get_exe_path
 
 
 # you do not have to touch this line unless you rename the script
 script_name = 'run_boss_sim.sh'
 # get full path of the executable
-script_fullpath = himster2.get_exe_path(script_name)
+script_fullpath = get_exe_path(script_name)
 script_home_path = os.path.abspath(os.path.dirname(script_fullpath))
 
 
@@ -254,11 +254,14 @@ for dec_file in dec_file_list:
             sim_missing = get_missing_job_indices(
                 rtraw_dir, rtraw_filename_base,
                 low_index_used, high_index_used,
-                num_events * simreco_config['sim_min_filesize_per_event_in_kb'])
+                num_events * simreco_config['sim_min_filesize_per_event_in_kb']
+            )
         if args.task_type == 2 or args.task_type == 3:
             reco_missing = get_missing_job_indices(
                 dst_dir, dst_filename_base, low_index_used, high_index_used,
-                num_events * simreco_config['reco_min_filesize_per_event_in_kb'])
+                num_events *
+                simreco_config['reco_min_filesize_per_event_in_kb']
+            )
 
         missing_tasks = {}
         for x in sim_missing:

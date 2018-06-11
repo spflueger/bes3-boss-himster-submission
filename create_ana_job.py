@@ -4,12 +4,12 @@ import os
 import argparse
 import json
 
-import himster2
-from general import find_file, find_files, find_dir, create_file_chunks
+from general import (find_file, find_files, find_dir, create_file_chunks,
+                     get_exe_path)
 
 
 # get full path of the executable
-script_fullpath = himster2.get_exe_path('create_ana_job.py')
+script_fullpath = get_exe_path('create_ana_job.py')
 script_dir = os.path.abspath(os.path.dirname(script_fullpath))
 
 json_file = open(script_dir + '/config.json')
@@ -25,8 +25,9 @@ use_energy_subdirs = general_config['use_energy_and_dec_filename_data_subdirs']
 
 
 def create_analysis_job_config(ecms, task_type, algorithm, job_opt_dir,
-                               job_opt_pattern, dst_dir_pattern, dst_file_subdir,
-                               dst_file_pattern, files_per_job, root_file_dir):
+                               job_opt_pattern, dst_dir_pattern,
+                               dst_file_subdir, dst_file_pattern,
+                               files_per_job, root_file_dir):
     ana_job_config = {}
     ana_job_config['boss_exe_path'] = application_path
 
@@ -77,7 +78,10 @@ def create_analysis_job_config(ecms, task_type, algorithm, job_opt_dir,
         dst_file_patterns.append(dst_file_pattern)
     dst_data_files = find_files(dst_file_dir, dst_file_patterns, '.dst')
 
-    dst_file_chunks = create_file_chunks(dst_data_files, files_per_job)
+    redistribution_threshold = analysis_config[
+        'chunk_redistribution_threshold']
+    dst_file_chunks = create_file_chunks(dst_data_files, files_per_job,
+                                         redistribution_threshold)
 
     ana_job_config['job_array_start_index'] = 1
     ana_job_config['job_array_last_index'] = len(dst_file_chunks)
@@ -88,7 +92,8 @@ def create_analysis_job_config(ecms, task_type, algorithm, job_opt_dir,
     if use_energy_subdirs:
         subdir = str(Ecms) + '/' + ana_job_option_base + \
             '/' + dst_decsubdir_name
-        root_file_subdir_order = analysis_config['root_output_dir_subdir_order']
+        root_file_subdir_order = analysis_config[
+            'root_output_dir_subdir_order']
         if root_file_subdir_order == 'decayname/algorithm':
             subdir = str(Ecms) + '/' + dst_decsubdir_name + \
                 '/' + ana_job_option_base
