@@ -5,7 +5,8 @@ import argparse
 import json
 
 import himster2
-from general import find_file, get_missing_job_indices, get_exe_path
+from general import (find_file, get_missing_job_indices, get_exe_path,
+                     SmartFormatter)
 
 
 # you do not have to touch this line unless you rename the script
@@ -28,7 +29,7 @@ workarea = os.environ[general_config['boss_workarea_envname']]
 parser = argparse.ArgumentParser(
     description='Script for submission of Boss simuation and reconstruction'
     ' jobs',
-    formatter_class=argparse.RawTextHelpFormatter)
+    formatter_class=SmartFormatter)
 
 parser.add_argument('Ecms', type=int, nargs=1,
                     help='CMS energy in MeV')
@@ -43,7 +44,7 @@ parser.add_argument('dec_files', metavar='dec_files', type=str, nargs='+',
 parser.add_argument('--start_job_index', metavar='start_job_index',
                     type=int, default=1,
                     help='index of the first job, which is used in filenames'
-                    ' and the seed (default = 1)')
+                    ' and the seed')
 parser.add_argument('--task_type',
                     type=int,
                     choices=range(1, 4),
@@ -51,35 +52,35 @@ parser.add_argument('--task_type',
                     help='Type of task:'
                     '\n1 -- simulation only'
                     '\n2 -- reconstruction only'
-                    '\n3 -- both (default)')
+                    '\n3 -- both\n')
 
 parser.add_argument('--dec_file_dir',
                     type=str,
                     default='',
                     help='Name of directory containing the boss decay files'
                     ' used for the simulation.\nNote that this has to be the'
-                    ' full path of the directory!\n'
+                    ' full path of the directory!'
                     )
 parser.add_argument('--sim_job_option_dir',
                     type=str,
                     default='',
                     help='Name of directory containing the template boss job'
                     ' option txt files for the simulation.\nNote'
-                    ' that this has to be the full path of the directory!\n'
+                    ' that this has to be the full path of the directory!'
                     )
 parser.add_argument('--rec_job_option_dir',
                     type=str,
                     default='',
                     help='Name of directory containing the template boss job'
                     ' option txt files for the reconstruction.\nNote'
-                    ' that this has to be the full path of the directory!\n'
+                    ' that this has to be the full path of the directory!'
                     )
 parser.add_argument('--gen_job_option_filename_pattern',
                     type=str,
                     default='',
                     help='Specify a general filename pattern of the job'
                     ' option files,\nwhich is used to filter for specific'
-                    ' simulation and reconstruction files.')
+                    ' simulation and reconstruction files.\n')
 parser.add_argument('--sim_job_option_filename_pattern',
                     type=str,
                     default='',
@@ -103,7 +104,7 @@ parser.add_argument('--isr', default=False,
 parser.add_argument('--background', default=False,
                     action='store_true',
                     help='Use this flag to direct the output into the '
-                    ' inclusive mc data subdirectory!')
+                    ' inclusive mc data subdirectory!\n')
 
 parser.add_argument('--random_seed', type=int, default=1234,
                     help='Global initial random seed. The random seed for each'
@@ -112,15 +113,15 @@ parser.add_argument('--random_seed', type=int, default=1234,
 
 parser.add_argument('--extra_file', type=str, default='',
                     help='Path to a file, which will be copied on the node '
-                    'scratch directory to work with in the simulation.')
+                    'scratch directory to work\nwithin the simulation.')
 
 parser.add_argument('--force', default=False, action='store_true',
                     help='Forces the simulation and/or reconstruction,'
-                    ' even if the output files already exist')
+                    ' even if the output files already exist.\n')
 
 parser.add_argument('--dump_job_options', default=False, action='store_true',
                     help='Instead of performing the sim/reco, the Boss options'
-                    ' of the job with the lowest job array id are dumped.')
+                    ' of the job with the lowest\njob array id are dumped.')
 
 args = parser.parse_args()
 

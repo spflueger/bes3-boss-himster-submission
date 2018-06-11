@@ -5,7 +5,7 @@ import argparse
 import json
 
 from general import (find_file, find_files, find_dir, create_file_chunks,
-                     get_exe_path)
+                     get_exe_path, SmartFormatter)
 
 
 # get full path of the executable
@@ -148,7 +148,7 @@ def create_analysis_job_config(ecms, task_type, algorithm, job_opt_dir,
 
 parser = argparse.ArgumentParser(
     description='Script for submission of Boss analysis jobs',
-    formatter_class=argparse.RawTextHelpFormatter)
+    formatter_class=SmartFormatter)
 
 parser.add_argument('Ecms', metavar='Ecms', type=int, nargs=1)
 parser.add_argument('dst_dirname_pattern', type=str, nargs=1)
@@ -162,7 +162,7 @@ parser.add_argument('--task_type',
                     help='Type of task:'
                     '\n1 -- data only'
                     '\n2 -- inclusive MC only'
-                    '\n3 -- MC only')
+                    '\n3 -- MC only\n')
 parser.add_argument('--algorithm', metavar='algorithm',
                     type=str, default=analysis_config['default_algorithm'])
 parser.add_argument('--data_dir', metavar='data_dir',
@@ -176,7 +176,7 @@ parser.add_argument('--job_options_dir',
                     default='',
                     help='Name of directory containing the boss job option'
                     ' txt files.\n Note that this has to be the full path of'
-                    ' the directory!\n'
+                    ' the directory!'
                     )
 parser.add_argument('--job_option_filename_pattern',
                     type=str,
@@ -185,7 +185,7 @@ parser.add_argument('--job_option_filename_pattern',
                     ' template file.')
 parser.add_argument('--dump_job_options', default=False, action='store_true',
                     help='Instead of performing the analysis, the Boss options'
-                    ' of the job with the lowest job array id are dumped.')
+                    ' of the job with the\nlowest job array id are dumped.')
 
 args = parser.parse_args()
 

@@ -1,6 +1,12 @@
 from os import listdir, path, environ, pathsep, getcwd, access, X_OK
 from re import search
 from glob import glob
+from argparse import ArgumentDefaultsHelpFormatter, RawTextHelpFormatter
+
+
+class SmartFormatter(ArgumentDefaultsHelpFormatter):
+    def _split_lines(self, text, width):
+        return RawTextHelpFormatter._split_lines(self, text, width)
 
 
 def get_exe_path(exe_name):
