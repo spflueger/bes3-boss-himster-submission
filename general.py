@@ -55,6 +55,8 @@ def check_index_range_for_directory(dir_path, regex_pattern):
 
 
 def find_file(dir_path, filename_patterns, file_ext):
+    print("searching for file with patterns",
+          filename_patterns, "in directory", dir_path)
     job_opt_files_all = glob(dir_path + '/*' + file_ext)
     if not job_opt_files_all:
         raise FileNotFoundError(
@@ -102,6 +104,8 @@ def find_file(dir_path, filename_patterns, file_ext):
 
 def find_files(dir_path, filename_patterns, file_ext='',
                forbid_no_results=True):
+    print("searching for files with patterns",
+          filename_patterns, "in directory", dir_path)
     files_all = glob(dir_path + '/*' + file_ext)
     if not files_all:
         raise FileNotFoundError(
