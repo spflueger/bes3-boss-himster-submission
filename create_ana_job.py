@@ -54,6 +54,7 @@ def create_analysis_job_config(ecms, task_type, algorithm, job_opt_dir,
         ana_job_option_patterns.append(algorithm)
     if job_opt_pattern != '':
         ana_job_option_patterns = [job_opt_pattern]
+    print("Trying to find analysis job option template file...")
     ana_job_config['ana_job_option_template_path'] = find_file(
         ana_job_option_dir, ana_job_option_patterns, job_option_file_ext)
     ana_job_option_base = os.path.splitext(os.path.split(
@@ -76,6 +77,7 @@ def create_analysis_job_config(ecms, task_type, algorithm, job_opt_dir,
     dst_file_patterns = []
     if dst_file_pattern != '':
         dst_file_patterns.append(dst_file_pattern)
+    print("Trying to find dst data files...")
     dst_data_files = find_files(dst_file_dir, dst_file_patterns, '.dst')
 
     redistribution_threshold = analysis_config[

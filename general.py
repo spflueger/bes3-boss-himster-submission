@@ -56,6 +56,13 @@ def check_index_range_for_directory(dir_path, regex_pattern):
 
 def find_file(dir_path, filename_patterns, file_ext):
     job_opt_files_all = glob(dir_path + '/*' + file_ext)
+    if not job_opt_files_all:
+        raise FileNotFoundError(
+            'Did not find any files with the requested file extension in the'
+            ' specified directory.\n'
+            'directory: ' + dir_path + '\n'
+            'file ext: ' + str(file_ext) + '\n'
+            'Please double check your request.')
     job_opt_files = []
     # filter for patterns
     for job_opt_file in job_opt_files_all:
@@ -68,13 +75,12 @@ def find_file(dir_path, filename_patterns, file_ext):
         if not skip:
             job_opt_files.append(job_opt_file)
 
-    if len(job_opt_files) == 0:
+    if not job_opt_files:
         raise FileNotFoundError(
             'Did not find any files in the directory, that'
             ' match your requested pattern.\n'
             'directory: ' + dir_path + '\n'
             'patterns: ' + str(filename_patterns) + '\n'
-            'file ext: ' + str(file_ext) + '\n'
             'Please double check your request.')
     return_index = 0
     if len(job_opt_files) > 1:
@@ -97,6 +103,13 @@ def find_file(dir_path, filename_patterns, file_ext):
 def find_files(dir_path, filename_patterns, file_ext='',
                forbid_no_results=True):
     files_all = glob(dir_path + '/*' + file_ext)
+    if not files_all:
+        raise FileNotFoundError(
+            'Did not find any files with the requested file extension in the'
+            ' specified directory.\n'
+            'directory: ' + dir_path + '\n'
+            'file ext: ' + str(file_ext) + '\n'
+            'Please double check your request.')
     files = []
     # filter for patterns
     for file in files_all:
@@ -109,7 +122,7 @@ def find_files(dir_path, filename_patterns, file_ext='',
         if not skip:
             files.append(file)
 
-    if len(files) == 0 and forbid_no_results:
+    if not files and forbid_no_results:
         raise FileNotFoundError(
             'Did not find any files in the directory, that'
             ' match your requested pattern.\n'
