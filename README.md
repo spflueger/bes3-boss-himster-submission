@@ -32,8 +32,9 @@ Thats it! Now just run the your version of submit scripts
 
 ### File Naming Conventions
 Currently there are certain conditions on the job option template filenames, in order that the scripts work correctly.
-- the analysis job option template files, should contain "ana" and depending on which kind of data that is analysed "mc", "data" or "inclMc"
-- ...
+- the sim reco job option template files should contain "sim" or "rec"
+- similarly, the analysis job option template files should contain "ana"
+These are the default names and can be changed in the config.json file.
 
 ### Usage
 Generally, use the *-h* or *--help* flags in the python script calls for more information.
@@ -50,3 +51,6 @@ It is a assumed you are in the directory of the cloned git repository
 1. Run `git stash`, which "saves" your local changes (should only be config.json, you can verify this with `git status`)
 2. Run `git pull`, which performs the update from the main repository
 3. Run `git stash apply`. This applies your local changes on the updated code. Here merge conflicts may appear, which you should check carefully.
+
+### Using shared data
+In case you want to run the scripts on a shared dataset, which resides outside of your data directory, simply create corresponding symbolic links to these datasets in your data directory `ln -s ...`.
