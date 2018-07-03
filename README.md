@@ -34,6 +34,7 @@ Thats it! Now just run the your version of submit scripts
 Currently there are certain conditions on the job option template filenames, in order that the scripts work correctly.
 - the sim reco job option template files should contain "sim" or "rec"
 - similarly, the analysis job option template files should contain "ana"
+
 These are the default names and can be changed in the config.json file.
 
 ### Usage
