@@ -6,6 +6,7 @@ import json
 
 import himster2
 from general import (find_file, get_missing_job_indices, get_exe_path,
+                     create_directory_structure, create_filename_base,
                      SmartFormatter)
 
 
@@ -122,6 +123,10 @@ parser.add_argument('--force', default=False, action='store_true',
 parser.add_argument('--dump_job_options', default=False, action='store_true',
                     help='Instead of performing the sim/reco, the Boss options'
                     ' of the job with the lowest\njob array id are dumped.')
+parser.add_argument('--testrun', default=False, action='store_true',
+                    help='Submits job to development queue for test purposes.'
+                    ' Your resource request will be ignored and a minimal set'
+                    ' will be used.')
 
 args = parser.parse_args()
 
@@ -139,24 +144,20 @@ if dec_file_dir is '':
     dec_file_dir = os.path.join(
         workarea, simreco_config['dec_file_subdir'])
 dec_file_list = args.dec_files
-digi_root_dir = ''
-dst_output_dir = ''
+sim_output_dir = ''
+rec_output_dir = ''
 sim_job_option_filename = ''
 rec_job_option_filename = ''
 
 pdt_table_path = ''
 use_energy_subdirs = general_config['use_energy_and_dec_filename_data_subdirs']
 
-mc_dirname = simreco_config['mc_subdir']
+mc_dirname = general_config['mc_subdir']
 if args.background:
-    mc_dirname = simreco_config['inclmc_subdir']
-digi_root_dir = os.path.join(
-    datadir, mc_dirname + '/' + simreco_config['digi_root_subdir'])
-if use_energy_subdirs:
-    digi_root_dir = os.path.join(digi_root_dir, str(Ecms))
-
-if not os.path.exists(digi_root_dir):
-    os.makedirs(digi_root_dir)
+    mc_dirname = general_config['inclmc_subdir']
+sim_output_dir = create_directory_structure(
+    datadir, [mc_dirname, simreco_config['sim_output_subdir']],
+    [str(Ecms)], use_energy_subdirs)
 
 # scans directories for job option template files
 # and selects correct one
@@ -169,7 +170,7 @@ if args.task_type == 1 or args.task_type == 3:
         pdt_table_path = os.path.join(
             workarea, simreco_config['pdt_table_subpath'])
 
-    patterns = ['sim']
+    patterns = [simreco_config['sim_output_filename_base']]
     if args.gen_job_option_filename_pattern != '':
         patterns.append(args.gen_job_option_filename_pattern)
     if args.sim_job_option_filename_pattern != '':
@@ -182,15 +183,11 @@ if args.task_type == 2 or args.task_type == 3:
         rec_job_option_dir = os.path.join(
             workarea, simreco_config['job_opt_template_subdir'])
 
-    dst_output_dir = os.path.join(
-        datadir, mc_dirname + '/' + simreco_config['dst_output_subdir'])
-    if use_energy_subdirs:
-        dst_output_dir = os.path.join(dst_output_dir, str(Ecms))
+    rec_output_dir = create_directory_structure(
+        datadir, [mc_dirname, simreco_config['reco_output_subdir']],
+        [str(Ecms)], use_energy_subdirs)
 
-    if not os.path.exists(dst_output_dir):
-        os.makedirs(dst_output_dir)
-
-    patterns = ['rec']
+    patterns = [simreco_config['reco_output_filename_base']]
     if args.gen_job_option_filename_pattern != '':
         patterns.append(args.gen_job_option_filename_pattern)
     if args.rec_job_option_filename_pattern != '':
@@ -211,6 +208,8 @@ joblist = []
 job_res_config = simreco_config['job_resource_request']
 job_walltime_in_minutes = int(60 * job_res_config['walltime_in_hours'])
 resource_request = himster2.JobResourceRequest(job_walltime_in_minutes)
+if args.testrun:
+    resource_request = himster2.make_test_resource_request()
 resource_request.number_of_nodes = 1
 resource_request.processors_per_node = 1
 resource_request.memory_in_mb = int(job_res_config['memory_in_mb'])
@@ -220,27 +219,21 @@ for dec_file in dec_file_list:
     dec_file_path = find_file(dec_file_dir, [dec_file], dec_file_ext)
     base = os.path.splitext(os.path.split(dec_file_path)[1])[0]
 
-    rtraw_dir = digi_root_dir + "/"
-    rtraw_filename_base = ''
-    if use_energy_subdirs:
-        rtraw_dir += base + "/"
-        rtraw_filename_base = 'digi'
-    else:
-        rtraw_filename_base = base + '_' + str(Ecms)
-    rtraw_filepath_base = rtraw_dir + rtraw_filename_base + '-'
-    if not os.path.exists(rtraw_dir):
-        os.makedirs(rtraw_dir)
+    rtraw_dir = create_directory_structure(
+        sim_output_dir, [], [base], use_energy_subdirs)
+    rtraw_filename_base = create_filename_base(
+        simreco_config['sim_output_filename_base'],
+        [base, Ecms], use_energy_subdirs
+    )
+    rtraw_filepath_base = rtraw_dir + '/' + rtraw_filename_base + '-'
 
-    dst_dir = dst_output_dir + "/"
-    dst_filename_base = ''
-    if use_energy_subdirs:
-        dst_dir += base + "/"
-        dst_filename_base = 'digi'
-    else:
-        dst_filename_base = base + '_' + str(Ecms)
-    dst_filepath_base = dst_dir + dst_filename_base + '-'
-    if not os.path.exists(dst_dir):
-        os.makedirs(dst_dir)
+    dst_dir = create_directory_structure(
+        rec_output_dir, [], [base], use_energy_subdirs)
+    dst_filename_base = create_filename_base(
+        simreco_config['reco_output_filename_base'],
+        [base, Ecms], use_energy_subdirs
+    )
+    dst_filepath_base = dst_dir + '/' + dst_filename_base + '-'
 
     job_array_range = {}
     # remove array jobs for which the output files are already existent

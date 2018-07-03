@@ -36,6 +36,10 @@ parser.add_argument('--force', default=False,
 parser.add_argument('--dump_job_options', default=False, action='store_true',
                     help='Instead of performing the analysis, the Boss options'
                     ' of the job with the lowest job array id are dumped.')
+parser.add_argument('--testrun', default=False, action='store_true',
+                    help='Submits job to development queue for test purposes.'
+                    ' Your resource request will be ignored and a minimal set'
+                    ' will be used.')
 
 args = parser.parse_args()
 
@@ -51,6 +55,8 @@ joblist = []
 job_res_config = analysis_config['job_resource_request']
 job_walltime_in_minutes = int(60 * job_res_config['walltime_in_hours'])
 resource_request = himster2.JobResourceRequest(job_walltime_in_minutes)
+if args.testrun:
+    resource_request = himster2.make_test_resource_request()
 resource_request.number_of_nodes = 1
 resource_request.processors_per_node = 1
 resource_request.memory_in_mb = int(job_res_config['memory_in_mb'])
@@ -66,7 +72,7 @@ if not os.path.exists(log_file_dir):
 low_index_used = job_config_data['job_array_start_index']
 high_index_used = job_config_data['job_array_last_index']
 output_dir = job_config_data['output_dir']
-root_filename_base = job_config_data['root_filename_base']
+analysis_filename_base = job_config_data['analysis_filename_base']
 
 array_indices = []
 # remove array jobs for which the output files are already existent
@@ -75,7 +81,7 @@ if args.dump_job_options:
     array_indices = [low_index_used]
 elif not args.force:
     array_indices = get_missing_job_indices(
-        output_dir, root_filename_base, low_index_used, high_index_used,
+        output_dir, analysis_filename_base, low_index_used, high_index_used,
         analysis_config['ana_min_filesize_in_kb'])
 else:
     array_indices = list(range(low_index_used, high_index_used + 1))
@@ -92,15 +98,15 @@ if args.dump_job_options:
 
 job.add_exported_user_variable('application_path',
                                job_config_data['boss_exe_path'])
-job.add_exported_user_variable('dst_chunk_file_path',
-                               job_config_data['dst_chunk_file_path'])
+job.add_exported_user_variable('reco_chunk_file_path',
+                               job_config_data['reco_chunk_file_path'])
 job.add_exported_user_variable('ana_job_option_template_path',
                                job_config_data[
                                    'ana_job_option_template_path'])
 job.add_exported_user_variable('output_dir',
                                output_dir)
-job.add_exported_user_variable('root_filename_base',
-                               root_filename_base)
+job.add_exported_user_variable('analysis_filename_base',
+                               analysis_filename_base)
 
 # add the job to the joblist which we pass to the job manager later
 joblist.append(job)

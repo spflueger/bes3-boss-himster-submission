@@ -30,9 +30,21 @@ def is_executable(exe_name):
     return False
 
 
+def make_test_resource_request():
+    test_rr = JobResourceRequest(30)
+    test_rr.partition = 'devel'
+    test_rr.number_of_nodes = 1
+    test_rr.processors_per_node = 1
+    test_rr.memory_in_mb = 500
+    test_rr.virtual_memory_in_mb = 500
+    test_rr.node_scratch_filesize_in_mb = 0
+    return test_rr
+
+
 class JobResourceRequest:
     def __init__(self, walltime_in_minutes):
         self.walltime_string = self.format_walltime(walltime_in_minutes)
+        self.partition = 'himster2_exp'
         self.number_of_nodes = 1
         self.processors_per_node = 1
         self.memory_in_mb = 1000
@@ -56,11 +68,11 @@ class JobResourceRequest:
 
     def get_submit_string(self):
         # hyperthreading on himster2 virtually increases cpu count by a
-        # factor of 2. we want to allocate only real cpus, hence the 
+        # factor of 2. we want to allocate only real cpus, hence the
         # factors of 2 in the code below
         resource_request = ' -N ' + str(self.number_of_nodes) \
-            + ' -n 1 -c ' + str(2*self.processors_per_node) \
-            + ' --mem-per-cpu=' + str(int(self.memory_in_mb/2)) + 'mb' \
+            + ' -n 1 -c ' + str(2 * self.processors_per_node) \
+            + ' --mem-per-cpu=' + str(int(self.memory_in_mb / 2)) + 'mb' \
             + ' --time=' + self.walltime_string
         # if self.node_scratch_filesize_in_mb > 0:
         #    resource_request += ' --tmp=' + \
@@ -122,7 +134,8 @@ class Job:
     def create_bash_commands(self):
         bashcommand_list = []
         for array_indices in self.job_array_index_bundles:
-            bashcommand = batch_command + ' -A m2_him_exp -p himster2_exp' + \
+            bashcommand = batch_command + ' -A m2_him_exp -p ' + \
+                self.resource_request.partition + \
                 ' --constraint=\"skylake,mhz-2101\"'
 
             bashcommand += self.create_array_string(array_indices)

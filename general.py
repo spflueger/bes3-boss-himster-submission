@@ -1,4 +1,4 @@
-from os import listdir, path, environ, pathsep, getcwd, access, X_OK
+from os import listdir, path, environ, pathsep, getcwd, access, X_OK, makedirs
 from re import search
 from glob import glob
 from argparse import ArgumentDefaultsHelpFormatter, RawTextHelpFormatter
@@ -54,6 +54,29 @@ def check_index_range_for_directory(dir_path, regex_pattern):
     return [lowest_index, highest_index]
 
 
+def create_directory_structure(base_dir, forced_subdir_list,
+                               optional_subdir_list, use_optional_subdirs):
+    output_dir = base_dir
+    for subdir in forced_subdir_list:
+        output_dir = path.join(output_dir, subdir)
+    if use_optional_subdirs:
+        for subdir in optional_subdir_list:
+            output_dir = path.join(output_dir, subdir)
+
+    if not path.exists(output_dir):
+        makedirs(output_dir)
+    return output_dir
+
+
+def create_filename_base(filename_base_start, base_suffixes, use_subdirs):
+    filename_base = filename_base_start
+    if not use_subdirs:
+        for suffix in base_suffixes:
+            filename_base += '_' + suffix
+
+    return filename_base
+
+
 def find_file(dir_path, filename_patterns, file_ext):
     print("searching for file with patterns",
           filename_patterns, "in directory", dir_path)
@@ -86,18 +109,8 @@ def find_file(dir_path, filename_patterns, file_ext):
             'Please double check your request.')
     return_index = 0
     if len(job_opt_files) > 1:
-        return_index = -1
         print("Multiple job option templates found in this directory!")
-        for jopopttemp in job_opt_files:
-            print(str(job_opt_files.index(jopopttemp)) + ': ' + jopopttemp)
-        return_index = -1
-        while return_index not in range(0, len(job_opt_files)):
-            return_index = input('Please enter a number corresponding'
-                                 ' to the template you want to use: ')
-            try:
-                return_index = int(return_index)
-            except ValueError:
-                return_index = -1
+        return_index = select_item(job_opt_files)
 
     return job_opt_files[return_index]
 
@@ -107,7 +120,7 @@ def find_files(dir_path, filename_patterns, file_ext='',
     print("searching for files with patterns",
           filename_patterns, "in directory", dir_path)
     files_all = glob(dir_path + '/*' + file_ext)
-    if not files_all:
+    if not files_all and forbid_no_results:
         raise FileNotFoundError(
             'Did not find any files with the requested file extension in the'
             ' specified directory.\n'
@@ -139,7 +152,12 @@ def find_files(dir_path, filename_patterns, file_ext='',
 
 
 def find_dir(dir_path, subdir_name_patterns):
+    print("searching for sub-directories with patterns",
+          subdir_name_patterns, "in directory", dir_path)
     dirs_all = listdir(dir_path)
+    if not dirs_all:
+        raise FileNotFoundError(
+            'Did not find any sub-directories in the specified directory!')
     dirs = []
     # filter for patterns
     for dirname in dirs_all:
@@ -151,7 +169,7 @@ def find_dir(dir_path, subdir_name_patterns):
         if not skip:
             dirs.append(dirname)
 
-    if len(dirs) == 0:
+    if not dirs:
         raise FileNotFoundError(
             'Did not find any directory which matches your requested'
             ' patterns.\n'
@@ -160,20 +178,59 @@ def find_dir(dir_path, subdir_name_patterns):
             'Please double check your request.')
     return_index = 0
     if len(dirs) > 1:
-        return_index = -1
         print("Multiple directories match the search patterns!")
-        for i in dirs:
-            print(str(dirs.index(i)) + ': ' + i)
-        return_index = -1
-        while return_index not in range(0, len(dirs)):
-            return_index = input('Please enter a number corresponding'
-                                 ' to the directory you want to use: ')
-            try:
-                return_index = int(return_index)
-            except ValueError:
-                return_index = -1
+        return_index = select_item(dirs)
 
     return dirs[return_index]
+
+
+def select_item(list_of_items):
+    return_index = -1
+
+    for i in list_of_items:
+        print(str(list_of_items.index(i)) + ': ' + i)
+    return_index = -1
+    while return_index not in range(0, len(list_of_items)):
+        return_index = input('Please enter a number corresponding'
+                             ' to the item you want to use: ')
+        try:
+            return_index = int(return_index)
+        except ValueError:
+            return_index = -1
+
+    return return_index
+
+
+def query_yes_no(question, default="yes"):
+    """Ask a yes/no question via raw_input() and return their answer.
+
+    "question" is a string that is presented to the user.
+    "default" is the presumed answer if the user just hits <Enter>.
+        It must be "yes" (the default), "no" or None (meaning
+        an answer is required of the user).
+
+    The "answer" return value is True for "yes" or False for "no".
+    """
+    valid = {"yes": True, "y": True, "ye": True,
+             "no": False, "n": False}
+    if default is None:
+        prompt = " [y/n] "
+    elif default == "yes":
+        prompt = " [Y/n] "
+    elif default == "no":
+        prompt = " [y/N] "
+    else:
+        raise ValueError("invalid default answer: '%s'" % default)
+
+    while True:
+        choice = input(question + prompt).lower()
+        if default is not None and choice == '':
+            return valid[default]
+        elif choice in valid:
+            return valid[choice]
+        else:
+            print("Please respond with 'yes' or 'no' "
+                  "(or 'y' or 'n').\n")
 
 
 def get_missing_job_indices(directory, filename_patterns,
