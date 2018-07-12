@@ -5,11 +5,14 @@ import argparse
 import json
 from re import search
 from sys import exit
+import sys
 
 from general import (find_file, find_files, find_dir, create_file_chunks,
                      get_exe_path, create_directory_structure,
                      create_filename_base, query_yes_no, SmartFormatter)
 
+# remove stacktrace from thrown exceptions (nicer for user)
+sys.tracebacklimit = 0
 
 # get full path of the executable
 script_fullpath = get_exe_path('create_ana_job.py')
@@ -230,6 +233,10 @@ parser.add_argument('--testrun', default=False, action='store_true',
                     help='Submits job to development queue for test purposes.'
                     ' Your resource request will be ignored and a minimal set'
                     ' will be used.')
+parser.add_argument('--force', default=False,
+                    action='store_true',
+                    help='Rerun this job completely, even if files already'
+                    ' exist. Warning: this will overwrite existing files!')
 
 args = parser.parse_args()
 
@@ -261,6 +268,8 @@ if args.dump_job_options:
     flags_string += ' --dump_job_options'
 if args.testrun:
     flags_string += ' --testrun'
+if args.force:
+    flags_string += ' --force'
 
 for ana_job_config_path in analysis_job_config_paths:
     os.system('python3 ' + os.path.join(script_dir, 'ana_submit_script.py') +

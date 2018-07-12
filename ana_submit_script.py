@@ -3,9 +3,13 @@
 import os
 import json
 import argparse
+import sys
 
 import himster2
 from general import get_missing_job_indices, get_exe_path
+
+# remove stacktrace from thrown exceptions (nicer for user)
+sys.tracebacklimit = 0
 
 # you do not have to touch this line unless you rename the script
 script_name = 'run_boss_ana.sh'

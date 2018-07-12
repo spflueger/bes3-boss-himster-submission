@@ -94,6 +94,13 @@ class Job:
         self.exported_user_variables = {}
 
     def set_job_array_indices(self, array_indices):
+        if not isinstance(array_indices, list):
+            raise TypeError("array_indices must be of type list")
+        if not array_indices:
+            raise ValueError("array_indices is empty! This can occur, when all"
+                             " of the output files already exist and are above"
+                             " the defined threshold filesize. Please use the"
+                             " --force flag to overwrite the output.")
         self.job_array_index_bundles = [array_indices]
 
     def add_exported_user_variable(self, name, value):
