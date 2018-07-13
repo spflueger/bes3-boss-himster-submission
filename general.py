@@ -2,6 +2,17 @@ from os import listdir, path, environ, pathsep, getcwd, access, X_OK, makedirs
 from re import search
 from glob import glob
 from argparse import ArgumentDefaultsHelpFormatter, RawTextHelpFormatter
+import sys
+
+
+# remove stacktrace from thrown exceptions (nicer for user)
+def exception_handler(exception_type, exception, traceback):
+    # All your trace are belong to us!
+    # your format
+    print(exception_type.__name__, ":", exception)
+
+
+sys.excepthook = exception_handler
 
 
 class SmartFormatter(ArgumentDefaultsHelpFormatter):

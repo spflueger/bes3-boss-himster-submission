@@ -3,15 +3,12 @@
 import os
 import argparse
 import json
-import sys
 
 import himster2
 from general import (find_file, get_missing_job_indices, get_exe_path,
                      create_directory_structure, create_filename_base,
                      SmartFormatter)
 
-# remove stacktrace from thrown exceptions (nicer for user)
-sys.tracebacklimit = 0
 
 # you do not have to touch this line unless you rename the script
 script_name = 'run_boss_sim.sh'

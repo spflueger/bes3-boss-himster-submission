@@ -5,14 +5,11 @@ import argparse
 import json
 from re import search
 from sys import exit
-import sys
 
 from general import (find_file, find_files, find_dir, create_file_chunks,
                      get_exe_path, create_directory_structure,
                      create_filename_base, query_yes_no, SmartFormatter)
 
-# remove stacktrace from thrown exceptions (nicer for user)
-sys.tracebacklimit = 0
 
 # get full path of the executable
 script_fullpath = get_exe_path('create_ana_job.py')
