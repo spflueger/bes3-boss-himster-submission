@@ -15,35 +15,24 @@ else
     exit 1
 fi
 
-if [ -z ${dump_job_options+x} ]; then
-    temp_outdir=`mktemp -d --tmpdir=/localscratch/${SLURM_JOB_ID}/`
-    cd ${temp_outdir}
-else
-    temp_outdir=$(dirname "${sim_job_option_template_path}")
-fi
-
-if [[ "${extra_file}" != "" ]] && [[ -f ${extra_file} ]]; then
-    cp ${extra_file} ${temp_outdir}/.
-fi
-
-rtraw_filepath="${rtraw_filepath_base}${JOBID}.rtraw"
-dst_filepath="${dst_filepath_base}${JOBID}.dst"
-
-if [ -z ${dump_job_options+x} ]; then
-    tmp_rtraw_filepath="${temp_outdir}/digi-${JOBID}.rtraw"
-    tmp_dst_filepath="${temp_outdir}/reco-${JOBID}.dst"
-else
-    tmp_rtraw_filepath=${rtraw_filepath}
-    tmp_dst_filepath=${dst_filepath}
-fi
-
 echo "task type: $task_type"
 echo "using boss: ${application_path}"
 
 # check if we run simulation
 if [[ "$task_type" -eq 1 || "$task_type" -eq 3 ]]; then
     # random seed calculation
-    sim_random_seed=$(($random_seed+$SLURM_ARRAY_TASK_ID))
+    sim_random_seed=$(($random_seed+$JOBID))
+
+    # create sim output dir and filename
+    sim_filepath="${sim_file_dir}/${sim_filename_base}-evts_${events_per_job}-rndseed_${sim_random_seed}.rtraw"
+    if [ -z ${dump_job_options+x} ]; then
+        temp_outdir="/localscratch/${SLURM_JOB_ID}"
+        cd ${temp_outdir}
+        tmp_sim_filepath="${temp_outdir}/sim-${JOBID}.rtraw"
+    else
+        temp_outdir=${sim_file_dir}
+        tmp_sim_filepath=${sim_filepath}
+    fi
 
     # Create the simulation card
     sim_job_option_filename="sim_$Ecms-$JOBID.txt"
@@ -56,7 +45,7 @@ fi
 cat << EOT >> $outfilename
 EvtDecay.userDecayTableName = "$dec_file_path";
 BesRndmGenSvc.RndmSeed = $sim_random_seed;
-RootCnvSvc.digiRootOutputFile = "$tmp_rtraw_filepath";
+RootCnvSvc.digiRootOutputFile = "$tmp_sim_filepath";
 ApplicationMgr.EvtMax = $events_per_job;
 EOT
 
@@ -64,15 +53,30 @@ EOT
     echo "using job options file: $jobopt"
     cat $jobopt
     if [ -z ${dump_job_options+x} ]; then
+        # copy extra files if needed
+        if [[ "${extra_file}" != "" ]] && [[ -f ${extra_file} ]]; then
+            cp ${extra_file} ${temp_outdir}/.
+        fi
         time ${application_path} $jobopt
-        cp $tmp_rtraw_filepath $rtraw_filepath
+        cp $tmp_sim_filepath $sim_filepath
     fi
 fi
 
 # check if we run also reconstruction
 if [[ "$task_type" -eq 2 || "$task_type" -eq 3 ]]; then
     # random seed calculation
-    rec_random_seed=$(($random_seed+$SLURM_ARRAY_TASK_ID))
+    rec_random_seed=$(($random_seed+$JOBID))
+
+    # create sim output dir and filename
+    reco_filepath="${reco_file_dir}/${reco_filename_base}-evts_${events_per_job}-rndseed_${rec_random_seed}.dst"
+    if [ -z ${dump_job_options+x} ]; then
+        temp_outdir="/localscratch/${SLURM_JOB_ID}"
+        cd ${temp_outdir}
+        tmp_reco_filepath="${temp_outdir}/reco-${JOBID}.dst"
+    else
+        temp_outdir=${reco_file_dir}
+        tmp_reco_filepath=${reco_filepath}
+    fi
 
     RndTrg=""
     # Himster uses different queue name and different dir for Random Trigger Data
@@ -83,17 +87,17 @@ if [[ "$task_type" -eq 2 || "$task_type" -eq 3 ]]; then
     rec_job_option_filename="rec_$Ecms-$JOBID.txt"
     outfilename="$temp_outdir/$rec_job_option_filename"
 
-    rtraw_path_used=$rtraw_filepath
+    sim_path_used=$sim_filepath
     if [[ "$task_type" -eq 1 || "$task_type" -eq 3 ]]; then
-        rtraw_path_used=$tmp_rtraw_filepath
+        sim_path_used=$tmp_sim_filepath
     fi
 
 cat << EOT > $outfilename
 #include "$rec_job_option_template_path"
 $RndTrg
 BesRndmGenSvc.RndmSeed = $rec_random_seed;
-EventCnvSvc.digiRootInputFile = {"$rtraw_path_used"};
-EventCnvSvc.digiRootOutputFile = "$tmp_dst_filepath";
+EventCnvSvc.digiRootInputFile = {"$sim_path_used"};
+EventCnvSvc.digiRootOutputFile = "$tmp_reco_filepath";
 ApplicationMgr.EvtMax = $events_per_job;
 EOT
 
@@ -102,12 +106,12 @@ EOT
     cat $jobopt
     if [ -z ${dump_job_options+x} ]; then
         # additionally check if the required files from the simulation exist
-        if [ -f "$rtraw_path_used" ]; then
-            echo "rtraw file exists! Running boss.exe ..."
+        if [ -f "$sim_path_used" ]; then
+            echo "sim file exists! Running boss.exe ..."
             time ${application_path} $jobopt
-            cp $tmp_dst_filepath $dst_filepath
+            cp $tmp_reco_filepath $reco_filepath
         else
-            echo "ERROR: could not find rtraw $input_filepath which is needed for the reconstruction!"
+            echo "ERROR: could not find sim file $sim_path_used which is needed for the reconstruction!"
         fi
     fi
 fi

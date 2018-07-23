@@ -7,7 +7,8 @@
         "use_separate_log_dir": true,
         "data_subdir": "data",
         "mc_subdir": "mc",
-        "inclmc_subdir": "inclMc"
+        "inclmc_subdir": "inclMc",
+        "use_long_info_filenames": false
     },
     "analysis": {
         "job_option_file_ext": ".txt",

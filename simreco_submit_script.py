@@ -214,26 +214,26 @@ resource_request.number_of_nodes = 1
 resource_request.processors_per_node = 1
 resource_request.memory_in_mb = int(job_res_config['memory_in_mb'])
 
+use_long_info_filenames = general_config['use_long_info_filenames']
 
 for dec_file in dec_file_list:
     dec_file_path = find_file(dec_file_dir, [dec_file], dec_file_ext)
     base = os.path.splitext(os.path.split(dec_file_path)[1])[0]
 
-    rtraw_dir = create_directory_structure(
+    sim_file_dir = create_directory_structure(
         sim_output_dir, [], [base], use_energy_subdirs)
-    rtraw_filename_base = create_filename_base(
-        simreco_config['sim_output_filename_base'],
-        [base, Ecms], use_energy_subdirs
+    suffixes = []
+    if use_long_info_filenames or not use_energy_subdirs:
+        suffixes = [base, 'ecms_' + str(Ecms)]
+    sim_filename_base = create_filename_base(
+        simreco_config['sim_output_filename_base'], suffixes
     )
-    rtraw_filepath_base = rtraw_dir + '/' + rtraw_filename_base + '-'
 
-    dst_dir = create_directory_structure(
+    reco_file_dir = create_directory_structure(
         rec_output_dir, [], [base], use_energy_subdirs)
-    dst_filename_base = create_filename_base(
-        simreco_config['reco_output_filename_base'],
-        [base, Ecms], use_energy_subdirs
+    reco_filename_base = create_filename_base(
+        simreco_config['reco_output_filename_base'], suffixes
     )
-    dst_filepath_base = dst_dir + '/' + dst_filename_base + '-'
 
     job_array_range = {}
     # remove array jobs for which the output files are already existent
@@ -246,13 +246,13 @@ for dec_file in dec_file_list:
         reco_missing = []
         if args.task_type == 1 or args.task_type == 3:
             sim_missing = get_missing_job_indices(
-                rtraw_dir, rtraw_filename_base,
+                sim_file_dir, sim_filename_base,
                 low_index_used, high_index_used,
                 num_events * simreco_config['sim_min_filesize_per_event_in_kb']
             )
         if args.task_type == 2 or args.task_type == 3:
             reco_missing = get_missing_job_indices(
-                dst_dir, dst_filename_base, low_index_used, high_index_used,
+                reco_file_dir, reco_filename_base, low_index_used, high_index_used,
                 num_events *
                 simreco_config['reco_min_filesize_per_event_in_kb']
             )
@@ -282,10 +282,10 @@ for dec_file in dec_file_list:
         datadir, general_config['logfile_subdir'])
     logfile_suffix = os.path.splitext(simreco_config['log_filename'])
     if use_energy_subdirs:
-        log_file_url += '/' + str(Ecms) + '/' + base + \
+        log_file_url += '/' + mc_dirname + '/' + str(Ecms) + '/' + base + \
             '/' + logfile_suffix[0] + '-%a' + logfile_suffix[1]
     else:
-        log_file_url += '/' + base + '_' + \
+        log_file_url += '/' + base + '_' + mc_dirname + '_' + \
             str(Ecms) + '_' + logfile_suffix[0] + '-%a' + logfile_suffix[1]
 
     log_file_dirname = os.path.dirname(log_file_url)
@@ -313,14 +313,18 @@ for dec_file in dec_file_list:
                 os.path.join(sim_job_option_dir, sim_job_option_filename))
             job.add_exported_user_variable('dec_file_path', dec_file_path)
             job.add_exported_user_variable('pdt_table_path', pdt_table_path)
-        job.add_exported_user_variable('rtraw_filepath_base',
-                                       rtraw_filepath_base)
+        job.add_exported_user_variable('sim_file_dir',
+                                       sim_file_dir)
+        job.add_exported_user_variable('sim_filename_base',
+                                       sim_filename_base)                              
         if task_type == 2 or task_type == 3:
             job.add_exported_user_variable(
                 'rec_job_option_template_path',
                 os.path.join(rec_job_option_dir, rec_job_option_filename))
-            job.add_exported_user_variable('dst_filepath_base',
-                                           dst_filepath_base)
+            job.add_exported_user_variable('reco_file_dir',
+                                           reco_file_dir)
+            job.add_exported_user_variable('reco_filename_base',
+                                           reco_filename_base)      
             job.add_exported_user_variable(
                 'himster2_randomtrg_path',
                 simreco_config['himster2_randomtrg_path'])

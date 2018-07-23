@@ -178,9 +178,10 @@ def create_log_file_url(base_path, subdirs, opt_subdirs):
     log_file_url = create_directory_structure(
         base_path, new_subdirs, opt_subdirs, use_energy_subdirs)
     log_filename = os.path.splitext(analysis_config['log_filename'])
-    log_filename_base = create_filename_base(log_filename[0],
-                                             opt_subdirs,
-                                             use_energy_subdirs)
+    suffixes = []
+    if not use_energy_subdirs:
+        suffixes = opt_subdirs
+    log_filename_base = create_filename_base(log_filename[0], suffixes)
     log_file_url += '/' + log_filename_base + '-%a' + log_filename[1]
     return log_file_url
 

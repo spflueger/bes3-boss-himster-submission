@@ -79,11 +79,10 @@ def create_directory_structure(base_dir, forced_subdir_list,
     return output_dir
 
 
-def create_filename_base(filename_base_start, base_suffixes, use_subdirs):
+def create_filename_base(filename_base_start, suffixes):
     filename_base = filename_base_start
-    if not use_subdirs:
-        for suffix in base_suffixes:
-            filename_base += '_' + suffix
+    for suffix in suffixes:
+        filename_base += '-' + suffix
 
     return filename_base
 
